@@ -1,17 +1,22 @@
-// File: RegistrationScreen.kt
-package com.example.dindoripranityadnyiki.screens
+package com.example.dindoripranityadnyiki.feature.user
 
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Patterns
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,25 +25,48 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.*
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.*
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.*
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavController
 import com.example.dindoripranityadnyiki.R
-import androidx.datastore.preferences.core.edit
-import com.example.dindoripranityadnyiki.data.PrefKeys
-import com.example.dindoripranityadnyiki.data.dataStore
+import com.example.dindoripranityadnyiki.core.data.PrefKeys
+import com.example.dindoripranityadnyiki.core.data.dataStore
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FieldValue
@@ -70,50 +98,50 @@ fun RegistrationScreen(navController: NavController) {
     val haptic = LocalHapticFeedback.current
 
     // Background Gradient (subtle)
-    val backgroundBrush = Brush.verticalGradient(
+    val backgroundBrush = Brush.Companion.verticalGradient(
         listOf(Color(0xFFF6FBFF), Color(0xFFEFF6FF))
     )
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         Box(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .background(backgroundBrush)
                 .padding(padding)
                 .imePadding(), // respects keyboard
-            contentAlignment = Alignment.TopCenter
+            contentAlignment = Alignment.Companion.TopCenter
         ) {
             // Top spacer + central card container
             Column(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .fillMaxSize()
                     .padding(horizontal = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.Companion.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.Companion.height(32.dp))
 
                 // Icon + Title (centered)
                 Box(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .size(110.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(Color.Companion.White)
                         .shadow(6.dp, CircleShape),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Companion.Center
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_registration),
                         contentDescription = "Registration icon",
-                        modifier = Modifier.size(64.dp)
+                        modifier = Modifier.Companion.size(64.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.Companion.height(16.dp))
 
                 Text(
                     text = "Create Your Account",
                     fontSize = 26.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.Companion.ExtraBold,
                     color = Color(0xFF0D47A1)
                 )
                 Text(
@@ -122,50 +150,50 @@ fun RegistrationScreen(navController: NavController) {
                     color = Color(0xFF546E7A)
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.Companion.height(20.dp))
 
                 // Centered card: constrain width so it looks good on tablets too
                 Card(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .fillMaxWidth()
                         .wrapContentHeight()
                         .padding(vertical = 12.dp)
                         .widthIn(max = 560.dp), // max width for large screens
                     shape = RoundedCornerShape(24.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = Color.Companion.White)
                 ) {
                     Column(
-                        modifier = Modifier
+                        modifier = Modifier.Companion
                             .fillMaxWidth()
                             .padding(22.dp)
                             .verticalScroll(rememberScrollState()),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.Companion.CenterHorizontally
                     ) {
                         // Inputs: larger spacing for touch targets
                         RegistrationField("Full Name", fullName) { fullName = it }
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.Companion.height(8.dp))
 
                         RegistrationField("Mobile (10 digits)", mobile.take(10)) {
                             if (it.length <= 10) mobile = it
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.Companion.height(8.dp))
 
                         RegistrationField("Email", email) { email = it }
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.Companion.height(8.dp))
 
                         OutlinedTextField(
                             value = address,
                             onValueChange = { address = it },
                             label = { Text("Address") },
                             placeholder = { Text("Eg. 12, MG Road, Near Temple") },
-                            modifier = Modifier
+                            modifier = Modifier.Companion
                                 .fillMaxWidth(),
                             maxLines = 3,
                             singleLine = false,
-                            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
+                            keyboardOptions = KeyboardOptions.Companion.Default.copy(imeAction = ImeAction.Companion.Next)
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.Companion.height(8.dp))
 
                         OutlinedTextField(
                             value = pincode,
@@ -176,17 +204,17 @@ fun RegistrationScreen(navController: NavController) {
                             label = { Text("Pincode (6 digits)") },
                             placeholder = { Text("411001") },
                             singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth()
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Companion.Number),
+                            modifier = Modifier.Companion.fillMaxWidth()
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.Companion.height(8.dp))
 
                         OutlinedTextField(
                             value = password,
                             onValueChange = { password = it },
                             label = { Text("Password") },
                             singleLine = true,
-                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            visualTransformation = if (passwordVisible) VisualTransformation.Companion.None else PasswordVisualTransformation(),
                             trailingIcon = {
                                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                     Icon(
@@ -195,16 +223,19 @@ fun RegistrationScreen(navController: NavController) {
                                     )
                                 }
                             },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                            modifier = Modifier.fillMaxWidth()
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Companion.Password,
+                                imeAction = ImeAction.Companion.Done
+                            ),
+                            modifier = Modifier.Companion.fillMaxWidth()
                         )
 
-                        Spacer(modifier = Modifier.height(18.dp))
+                        Spacer(modifier = Modifier.Companion.height(18.dp))
 
                         // Primary CTA
                         Button(
                             onClick = {
-                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 focusManager.clearFocus()
                                 keyboard?.hide()
 
@@ -220,7 +251,15 @@ fun RegistrationScreen(navController: NavController) {
                                     return@Button
                                 }
 
-                                if (!validateInputs(nameTrim, mobileTrim, emailTrim, addressTrim, pincodeTrim, passwordTrim)) {
+                                if (!validateInputs(
+                                        nameTrim,
+                                        mobileTrim,
+                                        emailTrim,
+                                        addressTrim,
+                                        pincodeTrim,
+                                        passwordTrim
+                                    )
+                                ) {
                                     scope.launch { snackbarHostState.showSnackbar("Please fill all fields correctly.") }
                                     return@Button
                                 }
@@ -272,32 +311,39 @@ fun RegistrationScreen(navController: NavController) {
                                         }
                                     }
                             },
-                            modifier = Modifier
+                            modifier = Modifier.Companion
                                 .fillMaxWidth()
                                 .height(56.dp),
-                            shape = RoundedCornerShape(28.dp)
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp)
                         ) {
                             if (isLoading) {
-                                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(22.dp))
+                                CircularProgressIndicator(
+                                    color = Color.Companion.White,
+                                    modifier = Modifier.Companion.size(22.dp)
+                                )
                             } else {
-                                Text("Sign Up →", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                Text(
+                                    "Sign Up →",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Companion.Bold
+                                )
                             }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.Companion.height(18.dp))
 
                 // Small footnote
                 Text(
                     text = "By signing up you agree to our Terms & Privacy Policy.",
                     fontSize = 12.sp,
                     color = Color(0xFF6B7280),
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    modifier = Modifier.Companion.padding(horizontal = 12.dp),
+                    textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.Companion.height(28.dp))
             }
         }
     }
@@ -354,9 +400,9 @@ fun RegistrationField(label: String, value: String, onValueChange: (String) -> U
         onValueChange = onValueChange,
         label = { Text(label) },
         singleLine = true,
-        shape = RoundedCornerShape(12.dp),
-        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-        modifier = Modifier
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+        keyboardOptions = KeyboardOptions.Companion.Default.copy(imeAction = ImeAction.Companion.Next),
+        modifier = Modifier.Companion
             .fillMaxWidth()
     )
 }

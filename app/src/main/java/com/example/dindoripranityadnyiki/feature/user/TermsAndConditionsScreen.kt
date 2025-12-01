@@ -1,7 +1,16 @@
-package com.example.dindoripranityadnyiki.screens
+package com.example.dindoripranityadnyiki.feature.user
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -9,9 +18,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -19,7 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.dindoripranityadnyiki.navigation.Routes
+import com.example.dindoripranityadnyiki.core.navigation.Routes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,25 +50,29 @@ fun TermsAndConditionsScreen(navController: NavController) {
                 title = {
                     Text(
                         "Terms & Conditions",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
+                        color = Color.Companion.White,
+                        fontWeight = FontWeight.Companion.Bold
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.Companion.White
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color(0xFFB71C1C),
-                    titleContentColor = Color.White
+                    titleContentColor = Color.Companion.White
                 )
             )
         }
     ) { inner ->
 
         Column(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .padding(inner)
                 .fillMaxSize()
                 .background(Color(0xFFF7F9FC))
@@ -63,14 +84,14 @@ fun TermsAndConditionsScreen(navController: NavController) {
             // Header Card
             Card(
                 shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = Color.Companion.White),
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.Companion.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.Companion.padding(16.dp)) {
                     Text(
                         "Dindori Pranit Yadnyiki – Official App",
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Companion.Bold,
                         fontSize = 18.sp,
                         color = Color(0xFF0D47A1)
                     )
@@ -78,13 +99,13 @@ fun TermsAndConditionsScreen(navController: NavController) {
                         "Last updated: 01 Nov 2025",
                         fontSize = 12.sp,
                         color = Color(0xFF607D8B),
-                        modifier = Modifier.padding(top = 2.dp)
+                        modifier = Modifier.Companion.padding(top = 2.dp)
                     )
                     Text(
                         "कृपया हा मजकूर काळजीपूर्वक वाचा. ॲप वापरणे म्हणजे तुम्ही या नियमांना सहमती देता.",
                         color = Color(0xFF37474F),
                         fontSize = 13.sp,
-                        modifier = Modifier.padding(top = 6.dp)
+                        modifier = Modifier.Companion.padding(top = 6.dp)
                     )
                 }
             }
@@ -156,41 +177,49 @@ fun TermsAndConditionsScreen(navController: NavController) {
 
             // ACTION BUTTONS
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.Companion.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
                     onClick = { navController.navigate(Routes.HELP_SUPPORT) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(30.dp)
+                    modifier = Modifier.Companion.weight(1f),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(30.dp)
                 ) {
-                    Icon(Icons.Default.MailOutline, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
+                    Icon(
+                        Icons.Default.MailOutline,
+                        contentDescription = null,
+                        modifier = Modifier.Companion.size(18.dp)
+                    )
+                    Spacer(Modifier.Companion.width(6.dp))
                     Text("Support", fontSize = 13.sp)
                 }
 
                 OutlinedButton(
                     onClick = { navController.navigate(Routes.PRIVACY) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(30.dp)
+                    modifier = Modifier.Companion.weight(1f),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(30.dp)
                 ) {
-                    Icon(Icons.Default.Description, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
+                    Icon(
+                        Icons.Default.Description,
+                        contentDescription = null,
+                        modifier = Modifier.Companion.size(18.dp)
+                    )
+                    Spacer(Modifier.Companion.width(6.dp))
                     Text("Privacy Policy", fontSize = 13.sp)
                 }
             }
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.Companion.height(18.dp))
 
             Text(
                 "App वापरत राहून तुम्ही वरील सर्व अटी मान्य करत आहात.",
                 fontSize = 12.sp,
                 color = Color(0xFF607D8B),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                textAlign = TextAlign.Companion.Center,
+                modifier = Modifier.Companion.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.Companion.height(20.dp))
         }
     }
 }
@@ -199,21 +228,21 @@ fun TermsAndConditionsScreen(navController: NavController) {
 private fun TermsSection(title: String, body: String) {
 
     Card(
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Companion.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.Companion.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(modifier = Modifier.Companion.padding(14.dp)) {
 
             Text(
                 text = title,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Companion.SemiBold,
                 fontSize = 15.sp,
                 color = Color(0xFF0D47A1)
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.Companion.height(6.dp))
 
             Text(
                 text = body,

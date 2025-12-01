@@ -1,10 +1,19 @@
-package com.example.dindoripranityadnyiki.screens
+package com.example.dindoripranityadnyiki.feature.user
 
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,7 +21,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.dindoripranityadnyiki.navigation.Routes
+import com.example.dindoripranityadnyiki.core.navigation.Routes
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -35,11 +57,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
-import java.util.*
-
-// ======================================================================
-//   MODEL + REPOSITORY + VIEWMODEL + UI  — ALL IN ONE FILE
-// ======================================================================
+import java.util.Date
+import java.util.Locale
 
 // -----------------------------
 // MODEL
@@ -191,10 +210,20 @@ fun AlertsScreen(navController: NavController) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Alerts", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        "Alerts",
+                        color = Color.Companion.White,
+                        fontWeight = FontWeight.Companion.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.Companion.White
+                        )
                     }
                 },
                 actions = {
@@ -202,18 +231,33 @@ fun AlertsScreen(navController: NavController) {
                         onClick = { vm.markAll() },
                         enabled = ui.list.any { !it.read }
                     ) {
-                        Icon(Icons.Default.Check, contentDescription = "Mark All", tint = Color.White)
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = "Mark All",
+                            tint = Color.Companion.White
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFFB71C1C))
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color(
+                        0xFFB71C1C
+                    )
+                )
             )
         }
     ) { pad ->
         Box(
-            Modifier
+            Modifier.Companion
                 .padding(pad)
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(Color(0xFFF5F8FB), Color.White)))
+                .background(
+                    Brush.Companion.verticalGradient(
+                        listOf(
+                            Color(0xFFF5F8FB),
+                            Color.Companion.White
+                        )
+                    )
+                )
         ) {
 
             when {
@@ -238,24 +282,37 @@ fun AlertsScreen(navController: NavController) {
 // -----------------------------
 @Composable
 fun AlertsLoading() {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Box(Modifier.Companion.fillMaxSize(), contentAlignment = Alignment.Companion.Center) {
+        Column(horizontalAlignment = Alignment.Companion.CenterHorizontally) {
             CircularProgressIndicator()
-            Spacer(Modifier.height(6.dp))
-            Text("Loading...", color = Color.Gray)
+            Spacer(Modifier.Companion.height(6.dp))
+            Text("Loading...", color = Color.Companion.Gray)
         }
     }
 }
 
 @Composable
 fun AlertsEmpty(onRefresh: () -> Unit) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(Icons.Default.Notifications, null, tint = Color.Gray, modifier = Modifier.size(50.dp))
-            Spacer(Modifier.height(10.dp))
-            Text("No alerts available", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-            Text("तुमच्या सूचनांसाठी इथे तपासा.", fontSize = 13.sp, color = Color.DarkGray)
-            Spacer(Modifier.height(12.dp))
+    Box(Modifier.Companion.fillMaxSize(), contentAlignment = Alignment.Companion.Center) {
+        Column(horizontalAlignment = Alignment.Companion.CenterHorizontally) {
+            Icon(
+                Icons.Default.Notifications,
+                null,
+                tint = Color.Companion.Gray,
+                modifier = Modifier.Companion.size(50.dp)
+            )
+            Spacer(Modifier.Companion.height(10.dp))
+            Text(
+                "No alerts available",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Companion.SemiBold
+            )
+            Text(
+                "तुमच्या सूचनांसाठी इथे तपासा.",
+                fontSize = 13.sp,
+                color = Color.Companion.DarkGray
+            )
+            Spacer(Modifier.Companion.height(12.dp))
             TextButton(onClick = onRefresh) { Text("Refresh") }
         }
     }
@@ -268,7 +325,7 @@ fun NotificationList(
     dateFormat: (UserNotification) -> String
 ) {
     LazyColumn(
-        Modifier
+        Modifier.Companion
             .fillMaxSize()
             .padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -289,7 +346,7 @@ fun NotificationCard(
     onClick: () -> Unit,
     dateLabel: String
 ) {
-    val bg = if (n.read) Color.White else Color(0xFFFFF6D5)
+    val bg = if (n.read) Color.Companion.White else Color(0xFFFFF6D5)
     val border = if (n.read) Color(0xFFE0E0E0) else Color(0xFFFFB300)
 
     // 🔁 type-wise body override (तू सांगितलेले चारही cases)
@@ -318,32 +375,43 @@ fun NotificationCard(
     }
 
     Card(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxWidth()
             .border(1.dp, border, RoundedCornerShape(12.dp))
             .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = bg)
     ) {
-        Column(Modifier.padding(12.dp)) {
+        Column(Modifier.Companion.padding(12.dp)) {
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(n.title, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Row(
+                Modifier.Companion.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(n.title, fontWeight = FontWeight.Companion.Bold, fontSize = 15.sp)
 
                 if (!n.read) {
                     Box(
-                        Modifier
-                            .background(Color(0xFFFFD54F), RoundedCornerShape(10.dp))
+                        Modifier.Companion
+                            .background(
+                                Color(0xFFFFD54F),
+                                androidx.compose.foundation.shape.RoundedCornerShape(10.dp)
+                            )
                             .padding(horizontal = 8.dp, vertical = 2.dp)
                     ) {
-                        Text("New", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("New", fontSize = 11.sp, fontWeight = FontWeight.Companion.Bold)
                     }
                 }
             }
 
-            Spacer(Modifier.height(4.dp))
-            Text(resolvedBody, fontSize = 13.sp, maxLines = 3, overflow = TextOverflow.Ellipsis)
-            Spacer(Modifier.height(6.dp))
-            Text(dateLabel, fontSize = 11.sp, color = Color.Gray)
+            Spacer(Modifier.Companion.height(4.dp))
+            Text(
+                resolvedBody,
+                fontSize = 13.sp,
+                maxLines = 3,
+                overflow = TextOverflow.Companion.Ellipsis
+            )
+            Spacer(Modifier.Companion.height(6.dp))
+            Text(dateLabel, fontSize = 11.sp, color = Color.Companion.Gray)
         }
     }
 }

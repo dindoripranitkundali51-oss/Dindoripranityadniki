@@ -9,7 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.rememberNavController
-import com.example.dindoripranityadnyiki.navigation.AppNavGraph
+import com.example.dindoripranityadnyiki.core.navigation.AppNavGraph
 import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {

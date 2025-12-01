@@ -1,16 +1,36 @@
-package com.example.dindoripranityadnyiki.screens
+package com.example.dindoripranityadnyiki.feature.user
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,11 +48,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavController
 import com.example.dindoripranityadnyiki.R
-import androidx.datastore.preferences.core.edit
-import com.example.dindoripranityadnyiki.data.PrefKeys
-import com.example.dindoripranityadnyiki.data.dataStore
+import com.example.dindoripranityadnyiki.core.data.PrefKeys
+import com.example.dindoripranityadnyiki.core.data.dataStore
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -53,13 +73,13 @@ fun LoginScreen(navController: NavController) {
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
 
-    val gradientBrush = Brush.verticalGradient(
-        colors = listOf(Color(0xFFE3F2FD), Color.White, Color(0xFFBBDEFB))
+    val gradientBrush = Brush.Companion.verticalGradient(
+        colors = listOf(Color(0xFFE3F2FD), Color.Companion.White, Color(0xFFBBDEFB))
     )
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         Box(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .background(gradientBrush)
                 .clickable(
@@ -72,30 +92,30 @@ fun LoginScreen(navController: NavController) {
                 .padding(padding)
         ) {
             Column(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .fillMaxSize()
                     .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                horizontalAlignment = Alignment.Companion.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 // 🔷 App Logo
                 Image(
                     painter = painterResource(id = R.drawable.app_logo),
                     contentDescription = "App Logo",
-                    modifier = Modifier.size(110.dp)
+                    modifier = Modifier.Companion.size(110.dp)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.Companion.height(16.dp))
 
                 Text(
                     text = "🙏 सुस्वागत आहे 🙏\nवेद विज्ञान संशोधन विभाग, दिंडोरी",
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Companion.Bold,
+                    textAlign = TextAlign.Companion.Center,
                     color = Color(0xFF0D47A1)
                 )
 
-                Spacer(modifier = Modifier.height(30.dp))
+                Spacer(modifier = Modifier.Companion.height(30.dp))
 
                 // 🔹 Email Field
                 OutlinedTextField(
@@ -103,11 +123,11 @@ fun LoginScreen(navController: NavController) {
                     onValueChange = { emailOrMobile = it },
                     label = { Text("Email Address") },
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    modifier = Modifier.fillMaxWidth()
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Companion.Email),
+                    modifier = Modifier.Companion.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.Companion.height(14.dp))
 
                 // 🔹 Password Field
                 OutlinedTextField(
@@ -116,7 +136,7 @@ fun LoginScreen(navController: NavController) {
                     label = { Text("Password") },
                     singleLine = true,
                     visualTransformation = if (passwordVisible)
-                        VisualTransformation.None else PasswordVisualTransformation(),
+                        VisualTransformation.Companion.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             val icon =
@@ -124,23 +144,23 @@ fun LoginScreen(navController: NavController) {
                             Icon(icon, contentDescription = null)
                         }
                     },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    modifier = Modifier.fillMaxWidth()
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Companion.Password),
+                    modifier = Modifier.Companion.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(26.dp))
+                Spacer(modifier = Modifier.Companion.height(26.dp))
 
                 // 🔘 Login Button
                 Box(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .fillMaxWidth()
                         .height(56.dp)
                         .shadow(8.dp, RoundedCornerShape(32.dp))
                         .background(
-                            brush = Brush.horizontalGradient(
+                            brush = Brush.Companion.horizontalGradient(
                                 colors = listOf(Color(0xFF1976D2), Color(0xFF0D47A1))
                             ),
-                            shape = RoundedCornerShape(32.dp)
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(32.dp)
                         )
                         .clickable(enabled = !isLoading) {
                             focusManager.clearFocus()
@@ -180,32 +200,32 @@ fun LoginScreen(navController: NavController) {
                                     }
                             }
                         },
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Companion.Center
                 ) {
                     if (isLoading)
                         CircularProgressIndicator(
-                            color = Color.White,
+                            color = Color.Companion.White,
                             strokeWidth = 2.dp,
-                            modifier = Modifier.size(22.dp)
+                            modifier = Modifier.Companion.size(22.dp)
                         )
                     else
                         Text(
                             text = "Login →",
                             fontSize = 18.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
+                            color = Color.Companion.White,
+                            fontWeight = FontWeight.Companion.Bold
                         )
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.Companion.height(20.dp))
 
                 // 🔹 Forgot Password
                 Text(
                     text = "Forgot Password?",
                     fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Companion.SemiBold,
                     color = Color(0xFF1976D2),
-                    modifier = Modifier.clickable {
+                    modifier = Modifier.Companion.clickable {
                         focusManager.clearFocus()
                         keyboard?.hide()
                         if (emailOrMobile.contains("@")) {

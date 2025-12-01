@@ -1,28 +1,34 @@
-package com.example.dindoripranityadnyiki.screens
+package com.example.dindoripranityadnyiki.feature.user
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import java.text.SimpleDateFormat
-import java.util.*
-
-/* -----------------------------------------------------------
-   MODEL + DATA PROVIDER (STATIC PRIVACY POLICY SECTIONS)
------------------------------------------------------------ */
+import java.util.Date
+import java.util.Locale
 
 data class PolicySection(
     val title: String,
@@ -103,10 +109,6 @@ fun getPrivacyPolicySections(): List<PolicySection> = listOf(
     )
 )
 
-/* -----------------------------------------------------------
-   PRIMARY UI SCREEN
------------------------------------------------------------ */
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrivacyPolicyScreen(
@@ -123,14 +125,18 @@ fun PrivacyPolicyScreen(
                 title = {
                     Text(
                         "Privacy Policy",
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        fontWeight = FontWeight.Companion.Bold,
+                        color = Color.Companion.White,
                         fontSize = 18.sp
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.Companion.White
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -141,7 +147,7 @@ fun PrivacyPolicyScreen(
     ) { paddingValues ->
 
         Column(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .background(Color(0xFFF7F9FC))
                 .padding(paddingValues)
@@ -152,12 +158,12 @@ fun PrivacyPolicyScreen(
             // Header
             Text(
                 "Dindori Pranit Yadnyiki — Official App",
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Companion.SemiBold,
                 fontSize = 18.sp,
                 color = Color(0xFF0D47A1)
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.Companion.height(6.dp))
 
             Text(
                 "Last updated: ${formatter.format(lastUpdated)}",
@@ -165,7 +171,7 @@ fun PrivacyPolicyScreen(
                 color = Color(0xFF616161)
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.Companion.height(14.dp))
 
             Text(
                 "कृपया हे गोपनीयता धोरण काळजीपूर्वक वाचा. या अ‍ॅपचा वापर केल्यास आपण हे धोरण स्वीकारता.",
@@ -173,15 +179,15 @@ fun PrivacyPolicyScreen(
                 color = Color(0xFF37474F)
             )
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.Companion.height(18.dp))
 
             // Sections
             sections.forEach { section ->
                 PolicyCard(section)
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.Companion.height(12.dp))
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.Companion.height(20.dp))
 
             Text(
                 "Disclaimer: ही माहिती केवळ मार्गदर्शनासाठी आहे. आवश्यक तेव्हा कायदेशीर सल्ला घ्या.",
@@ -192,25 +198,21 @@ fun PrivacyPolicyScreen(
     }
 }
 
-/* -----------------------------------------------------------
-   CARD COMPOSABLE
------------------------------------------------------------ */
-
 @Composable
 fun PolicyCard(section: PolicySection) {
     Column(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxWidth()
-            .background(Color.White, RoundedCornerShape(10.dp))
+            .background(Color.Companion.White, RoundedCornerShape(10.dp))
             .padding(14.dp)
     ) {
         Text(
             text = section.title,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Companion.SemiBold,
             fontSize = 15.sp,
             color = Color(0xFF0D47A1)
         )
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.Companion.height(6.dp))
         Text(
             text = section.body,
             fontSize = 14.sp,

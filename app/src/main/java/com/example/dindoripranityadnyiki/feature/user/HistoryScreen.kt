@@ -1,16 +1,37 @@
-// HistoryScreen.kt — FIXED to use status + createdAt (matches existing index)
-package com.example.dindoripranityadnyiki.screens
+package com.example.dindoripranityadnyiki.feature.user
 
-import android.widget.Toast
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,9 +42,13 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.*
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.Source
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 
 // ------------------------------
 // Model
@@ -392,25 +417,25 @@ fun HistoryScreen(navController: NavController) {
         }
     ) { inner ->
         Column(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .padding(inner)
                 .padding(14.dp)
                 .fillMaxSize()
         ) {
-            if (isLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
+            if (isLoading) LinearProgressIndicator(Modifier.Companion.fillMaxWidth())
 
             errorMsg?.let {
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.Companion.height(8.dp))
                 Text(it, color = MaterialTheme.colorScheme.error)
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.Companion.height(8.dp))
                 Button(onClick = { fetchFirst() }) { Text("Retry") }
                 return@Column
             }
 
             if (!isLoading && bookings.isEmpty()) {
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.Companion.height(10.dp))
                 Text("No completed / Not Done bookings found.")
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.Companion.height(10.dp))
                 Button(onClick = { navController.navigate("poojaSelection") }) {
                     Text("Book a Pooja")
                 }
@@ -427,17 +452,23 @@ fun HistoryScreen(navController: NavController) {
                         guru = bk.gurujiName ?: "—",
                         status = bk.status,
                         onClick = {
-                            try { navController.navigate("bookingDetails/${bk.id}") }
-                            catch (e: Exception) { Toast.makeText(ctx, "Cannot open details", Toast.LENGTH_SHORT).show() }
+                            try {
+                                navController.navigate("bookingDetails/${bk.id}")
+                            } catch (e: Exception) {
+                                Toast.makeText(ctx, "Cannot open details", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
                         }
                     )
                 }
 
                 if (hasMoreCanonical || hasMoreLegacy) {
                     item {
-                        Spacer(Modifier.height(10.dp))
-                        if (isLoadingMore) LinearProgressIndicator(Modifier.fillMaxWidth())
-                        else Button(modifier = Modifier.fillMaxWidth(), onClick = { loadMore() }) { Text("Load more") }
+                        Spacer(Modifier.Companion.height(10.dp))
+                        if (isLoadingMore) LinearProgressIndicator(Modifier.Companion.fillMaxWidth())
+                        else Button(
+                            modifier = Modifier.Companion.fillMaxWidth(),
+                            onClick = { loadMore() }) { Text("Load more") }
                     }
                 }
             }
@@ -457,27 +488,27 @@ fun BookingHistoryCard(
     onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxWidth()
             .clickable { onClick() },
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Column(Modifier.padding(14.dp)) {
+        Column(Modifier.Companion.padding(14.dp)) {
             Row(
-                Modifier.fillMaxWidth(),
+                Modifier.Companion.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Companion.CenterVertically
             ) {
-                Text("Request: $requestId", fontWeight = FontWeight.SemiBold)
+                Text("Request: $requestId", fontWeight = FontWeight.Companion.SemiBold)
                 HistoryStatusChip(status)
             }
-            Spacer(Modifier.height(6.dp))
-            Text(poojaName, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.Companion.height(6.dp))
+            Text(poojaName, fontWeight = FontWeight.Companion.Bold)
+            Spacer(Modifier.Companion.height(4.dp))
             Text("Date: $dateStr")
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.Companion.height(4.dp))
             Text("Address: $address")
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.Companion.height(4.dp))
             Text("Guruji: ${if (guru.isBlank()) "Not assigned" else guru}")
         }
     }
@@ -490,9 +521,9 @@ fun HistoryStatusChip(status: String) {
         "pending" -> Color(0xFFFFF3CD) to Color(0xFF856404)
         "approved", "done" -> Color(0xFFD4EDDA) to Color(0xFF155724)
         "notdone", "not_done" -> Color(0xFFFFD6D6) to Color(0xFF8B0000)
-        else -> Color.LightGray to Color.DarkGray
+        else -> Color.Companion.LightGray to Color.Companion.DarkGray
     }
     Surface(shape = RoundedCornerShape(20.dp), color = bg) {
-        Text(status, color = fg, modifier = Modifier.padding(10.dp, 6.dp))
+        Text(status, color = fg, modifier = Modifier.Companion.padding(10.dp, 6.dp))
     }
 }

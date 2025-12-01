@@ -1,54 +1,77 @@
-package com.example.dindoripranityadnyiki.screens
+package com.example.dindoripranityadnyiki.feature.user
 
-import androidx.lifecycle.viewModelScope
 import android.content.Context
-import android.content.pm.PackageManager
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Brightness4
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.dindoripranityadnyiki.data.dataStore
-import com.example.dindoripranityadnyiki.data.PrefKeys
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.dindoripranityadnyiki.core.data.PrefKeys
+import com.example.dindoripranityadnyiki.core.data.dataStore
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
-// -----------------------------------------------------
-// ENUMS
-// -----------------------------------------------------
-
 enum class AppLanguage { MARATHI, ENGLISH }
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
-
-// -----------------------------------------------------
-// UI STATE
-// -----------------------------------------------------
 
 data class SettingsUiState(
     val isLoading: Boolean = true,
@@ -57,10 +80,6 @@ data class SettingsUiState(
     val notificationsEnabled: Boolean = true,
     val errorMessage: String? = null
 )
-
-// -----------------------------------------------------
-// REPOSITORY - handles DataStore
-// -----------------------------------------------------
 
 class SettingsRepository(
     private val dataStore: DataStore<Preferences>,
@@ -126,10 +145,6 @@ class SettingsRepository(
         fun from(context: Context) = SettingsRepository(context.dataStore)
     }
 }
-
-// -----------------------------------------------------
-// VIEWMODEL
-// -----------------------------------------------------
 
 class SettingsViewModel(
     private val repo: SettingsRepository
@@ -205,10 +220,6 @@ class SettingsViewModel(
     }
 }
 
-// -----------------------------------------------------
-// UI SCREEN
-// -----------------------------------------------------
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(navController: NavController) {
@@ -228,7 +239,7 @@ fun SettingsScreen(navController: NavController) {
     }
 
     val bgBrush = remember {
-        Brush.verticalGradient(listOf(Color.White, Color(0xFFF2F3F5)))
+        Brush.Companion.verticalGradient(listOf(Color.Companion.White, Color(0xFFF2F3F5)))
     }
 
     Scaffold(
@@ -237,8 +248,8 @@ fun SettingsScreen(navController: NavController) {
                 title = {
                     Text(
                         "Settings",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
+                        color = Color.Companion.White,
+                        fontWeight = FontWeight.Companion.Bold,
                         fontSize = 18.sp
                     )
                 },
@@ -247,7 +258,7 @@ fun SettingsScreen(navController: NavController) {
                         Icon(
                             Icons.Filled.ArrowBack,
                             contentDescription = "back",
-                            tint = Color.White
+                            tint = Color.Companion.White
                         )
                     }
                 },
@@ -259,7 +270,7 @@ fun SettingsScreen(navController: NavController) {
     ) { inner ->
 
         Column(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .background(bgBrush)
                 .padding(inner)
@@ -269,7 +280,7 @@ fun SettingsScreen(navController: NavController) {
 
             if (ui.isLoading) {
                 LinearProgressIndicator(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .fillMaxWidth()
                         .padding(bottom = 4.dp)
                 )
@@ -317,15 +328,15 @@ fun SettingsScreen(navController: NavController) {
             // --------------------------
             SectionCard(icon = Icons.Filled.Notifications, title = "Notifications") {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    verticalAlignment = Alignment.Companion.CenterVertically,
+                    modifier = Modifier.Companion.fillMaxWidth()
                 ) {
                     Column(
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.Companion.weight(1f)
                     ) {
                         Text(
                             "Push Notifications",
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Companion.SemiBold
                         )
                         Text(
                             "Receive updates about your puja bookings",
@@ -340,16 +351,16 @@ fun SettingsScreen(navController: NavController) {
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.Companion.weight(1f))
 
             // --------------------------
             // FOOTER
             // --------------------------
             Text(
                 text = "Version $version",
-                color = Color.Gray,
+                color = Color.Companion.Gray,
                 fontSize = 13.sp,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.Companion.align(Alignment.Companion.CenterHorizontally)
             )
         }
 
@@ -362,37 +373,33 @@ fun SettingsScreen(navController: NavController) {
     }
 }
 
-// -----------------------------------------------------
-// Helpers
-// -----------------------------------------------------
-
 @Composable
 fun SectionCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     title: String,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.Companion.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = Modifier.Companion.padding(14.dp)) {
+            Row(verticalAlignment = Alignment.Companion.CenterVertically) {
                 Icon(
                     icon,
                     contentDescription = null,
                     tint = Color(0xFF0D47A1),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.Companion.size(20.dp)
                 )
-                Spacer(Modifier.width(6.dp))
+                Spacer(Modifier.Companion.width(6.dp))
                 Text(
                     title,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Companion.SemiBold,
                     color = Color(0xFF0D47A1)
                 )
             }
-            Divider(modifier = Modifier.padding(vertical = 6.dp))
+            Divider(modifier = Modifier.Companion.padding(vertical = 6.dp))
             content()
         }
     }
@@ -405,14 +412,14 @@ fun RadioRow(
     onClick: () -> Unit
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
+        verticalAlignment = Alignment.Companion.CenterVertically,
+        modifier = Modifier.Companion
             .fillMaxWidth()
             .padding(vertical = 3.dp)
     ) {
         Text(
             label,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.Companion.weight(1f),
             fontSize = 14.sp
         )
         RadioButton(

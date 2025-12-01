@@ -1,15 +1,30 @@
-package com.example.dindoripranityadnyiki.screens
+package com.example.dindoripranityadnyiki.feature.common
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -25,12 +40,16 @@ import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavController
 import com.example.dindoripranityadnyiki.R
-import com.example.dindoripranityadnyiki.data.PrefKeys
-import com.example.dindoripranityadnyiki.data.dataStore
+import com.example.dindoripranityadnyiki.core.data.PrefKeys
+import com.example.dindoripranityadnyiki.core.data.dataStore
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
-import kotlin.math.max
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 
 // -------------------------
@@ -128,7 +147,7 @@ fun SplashScreen(navController: NavController) {
 
     // background brush
     val backgroundBrush = remember {
-        Brush.verticalGradient(listOf(Color(0xFFF8FAFF), Color(0xFFDDE3F0)))
+        Brush.Companion.verticalGradient(listOf(Color(0xFFF8FAFF), Color(0xFFDDE3F0)))
     }
 
     // Launch effect: read prefs, run animations, then navigate
@@ -142,8 +161,10 @@ fun SplashScreen(navController: NavController) {
         // 2) run UI animations in parallel
         coroutineScope {
             val a1 = launch { logoAlpha.animateTo(1f, tween(900, easing = LinearOutSlowInEasing)) }
-            val a2 = launch { logoScale.animateTo(1.05f, tween(1000, easing = FastOutSlowInEasing)) }
-            val a3 = launch { delay(300); textAlpha.animateTo(1f, tween(700, easing = LinearEasing)) }
+            val a2 =
+                launch { logoScale.animateTo(1.05f, tween(1000, easing = FastOutSlowInEasing)) }
+            val a3 =
+                launch { delay(300); textAlpha.animateTo(1f, tween(700, easing = LinearEasing)) }
             joinAll(a1, a2, a3)
         }
 
@@ -171,7 +192,10 @@ fun SplashScreen(navController: NavController) {
                 // reset a few flags (safe)
                 resetAppStateSafe(context)
                 // mark not-first-time
-                try { context.dataStore.edit { it[PrefKeys.IS_FIRST_TIME] = false } } catch (_: Exception) {}
+                try {
+                    context.dataStore.edit { it[PrefKeys.IS_FIRST_TIME] = false }
+                } catch (_: Exception) {
+                }
                 navController.navigateSafely(Routes.RoleSelection.route)
             }
 
@@ -182,7 +206,10 @@ fun SplashScreen(navController: NavController) {
 
             prefs.isRegistered && (currentUser == null || !prefs.isLoggedIn) -> {
                 // ensure datastore logged_in flag is false to avoid loop
-                try { context.dataStore.edit { it[PrefKeys.IS_LOGGED_IN] = false } } catch (_: Exception) {}
+                try {
+                    context.dataStore.edit { it[PrefKeys.IS_LOGGED_IN] = false }
+                } catch (_: Exception) {
+                }
                 navController.navigateSafely(Routes.Login.route)
             }
 
@@ -209,31 +236,31 @@ fun SplashScreen(navController: NavController) {
 
     // UI
     Box(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxSize()
             .background(backgroundBrush)
     ) {
         Column(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .padding(vertical = 32.dp, horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.Companion.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.Companion.height(40.dp))
 
             Image(
                 painter = painterResource(id = R.drawable.app_logo),
                 contentDescription = "App logo",
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .size(180.dp)
                     .scale(logoScale.value)
                     .alpha(logoAlpha.value)
             )
 
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
+                horizontalAlignment = Alignment.Companion.CenterHorizontally,
+                modifier = Modifier.Companion
                     .alpha(textAlpha.value)
                     .padding(bottom = 42.dp)
             ) {
@@ -241,8 +268,8 @@ fun SplashScreen(navController: NavController) {
                     "Shree Swami Samarth",
                     style = MaterialTheme.typography.titleLarge.copy(
                         color = Color(0xFF203864),
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Companion.Bold,
+                        textAlign = TextAlign.Companion.Center,
                         letterSpacing = 0.5.sp
                     )
                 )
@@ -250,14 +277,14 @@ fun SplashScreen(navController: NavController) {
                     "Seva & Adhyatmik Vikas Marg",
                     style = MaterialTheme.typography.titleMedium.copy(
                         color = Color(0xFF3E4D6E),
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Companion.Center
                     )
                 )
                 Text(
                     "(Dindori Pranit)",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = Color(0xFF627095),
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Companion.Center
                     )
                 )
             }

@@ -1,8 +1,19 @@
-package com.example.dindoripranityadnyiki.screens
+package com.example.dindoripranityadnyiki.feature.user
 
 import android.app.DatePickerDialog
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,7 +21,29 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,8 +60,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
-import com.example.dindoripranityadnyiki.data.PrefKeys
-import com.example.dindoripranityadnyiki.data.dataStore
+import com.example.dindoripranityadnyiki.core.data.PrefKeys
+import com.example.dindoripranityadnyiki.core.data.dataStore
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
@@ -38,7 +71,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 // ---- Location Type (तुझ्या लिस्टनुसार) ----
 enum class LocationType(val label: String) {
@@ -128,8 +163,6 @@ fun validateBookingForm(
 
     return BookingValidationResult.Valid
 }
-
-// ---------------------------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -240,39 +273,39 @@ fun BookingFormScreen(navController: NavController) {
                 title = {
                     Text(
                         "Booking Confirmation",
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        fontWeight = FontWeight.Companion.Bold,
+                        color = Color.Companion.White
                     )
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color(0xFFB71C1C),
-                    titleContentColor = Color.White
+                    titleContentColor = Color.Companion.White
                 )
             )
         }
     ) { innerPadding ->
         Box(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .background(bgColor)
                 .padding(innerPadding)
         ) {
             Column(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
                 // Pooja Info
                 ElevatedCard(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.Companion.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = Color.Companion.White),
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(18.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.Companion.padding(18.dp),
+                        verticalAlignment = Alignment.Companion.CenterVertically
                     ) {
                         SubcomposeAsyncImage(
                             model = ImageRequest.Builder(context)
@@ -280,13 +313,13 @@ fun BookingFormScreen(navController: NavController) {
                                 .crossfade(true)
                                 .build(),
                             contentDescription = null,
-                            modifier = Modifier
+                            modifier = Modifier.Companion
                                 .size(90.dp)
                                 .clip(CircleShape),
-                            contentScale = ContentScale.Crop,
+                            contentScale = ContentScale.Companion.Crop,
                             loading = {
                                 Box(
-                                    Modifier
+                                    Modifier.Companion
                                         .size(90.dp)
                                         .clip(CircleShape)
                                         .background(Color(0xFFE3F2FD))
@@ -294,25 +327,25 @@ fun BookingFormScreen(navController: NavController) {
                             },
                             error = {
                                 Box(
-                                    Modifier
+                                    Modifier.Companion
                                         .size(90.dp)
                                         .clip(CircleShape)
                                         .background(Color(0xFFE3F2FD)),
-                                    contentAlignment = Alignment.Center
+                                    contentAlignment = Alignment.Companion.Center
                                 ) {
                                     Text("🕉️")
                                 }
                             }
                         )
-                        Spacer(Modifier.width(16.dp))
+                        Spacer(Modifier.Companion.width(16.dp))
                         Column {
                             Text(
                                 poojaName.ifBlank { "Selected Pooja" },
                                 fontSize = 18.sp,
-                                fontWeight = FontWeight.ExtraBold,
+                                fontWeight = FontWeight.Companion.ExtraBold,
                                 color = Color(0xFF0D47A1)
                             )
-                            Spacer(Modifier.height(4.dp))
+                            Spacer(Modifier.Companion.height(4.dp))
                             Text(
                                 "सर्व पूजांचे आयोजन अधिकृत प्रमाणे पारदर्शक पद्धतीने केले जाते. तपशील योग्य भरल्यास बुकिंग निश्चित होईल.",
                                 color = Color(0xFF37474F),
@@ -325,19 +358,19 @@ fun BookingFormScreen(navController: NavController) {
 
                 // Date
                 ElevatedCard(
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.Companion.White),
                     elevation = CardDefaults.cardElevation(8.dp)
                 ) {
                     Row(
-                        modifier = Modifier
+                        modifier = Modifier.Companion
                             .fillMaxWidth()
                             .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.Companion.CenterVertically
                     ) {
                         Column {
-                            Text("Select Muhurat Date", fontWeight = FontWeight.Bold)
+                            Text("Select Muhurat Date", fontWeight = FontWeight.Companion.Bold)
                             Text(
                                 selectedDate?.let { sdf.format(Date(it)) } ?: "No date chosen",
                                 color = Color(0xFF546E7A)
@@ -355,19 +388,19 @@ fun BookingFormScreen(navController: NavController) {
 
                 // Contact
                 ElevatedCard(
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.Companion.White),
                     elevation = CardDefaults.cardElevation(8.dp)
                 ) {
                     Column(
-                        Modifier
+                        Modifier.Companion
                             .fillMaxWidth()
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
                             "Contact Details",
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Companion.Bold,
                             color = Color(0xFF0D47A1)
                         )
 
@@ -376,7 +409,7 @@ fun BookingFormScreen(navController: NavController) {
                             onValueChange = { contactName = it },
                             label = { Text("Contact Person Name") },
                             singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.Companion.fillMaxWidth()
                         )
 
                         OutlinedTextField(
@@ -386,8 +419,8 @@ fun BookingFormScreen(navController: NavController) {
                             },
                             label = { Text("Mobile (10 digits)") },
                             singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                            modifier = Modifier.fillMaxWidth()
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Companion.Phone),
+                            modifier = Modifier.Companion.fillMaxWidth()
                         )
 
                         OutlinedTextField(
@@ -395,27 +428,27 @@ fun BookingFormScreen(navController: NavController) {
                             onValueChange = { contactEmail = it },
                             label = { Text("Email (optional)") },
                             singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                            modifier = Modifier.fillMaxWidth()
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Companion.Email),
+                            modifier = Modifier.Companion.fillMaxWidth()
                         )
                     }
                 }
 
                 // Location details – Address + Pincode
                 ElevatedCard(
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.Companion.White),
                     elevation = CardDefaults.cardElevation(8.dp)
                 ) {
                     Column(
-                        Modifier
+                        Modifier.Companion
                             .fillMaxWidth()
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
                             "Location Details",
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Companion.Bold,
                             color = Color(0xFF0D47A1)
                         )
 
@@ -424,7 +457,7 @@ fun BookingFormScreen(navController: NavController) {
                             onValueChange = { address = it },
                             label = { Text("Address") },
                             placeholder = { Text("House no., Street, Landmark, District") },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.Companion.fillMaxWidth()
                         )
 
                         OutlinedTextField(
@@ -433,9 +466,9 @@ fun BookingFormScreen(navController: NavController) {
                                 if (it.length <= 6) pincode = it.filter(Char::isDigit)
                             },
                             label = { Text("Pincode") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Companion.Number),
                             singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.Companion.fillMaxWidth()
                         )
                     }
                 }
@@ -444,19 +477,19 @@ fun BookingFormScreen(navController: NavController) {
                 var locationExpanded by remember { mutableStateOf(false) }
 
                 ElevatedCard(
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.Companion.White),
                     elevation = CardDefaults.cardElevation(8.dp)
                 ) {
                     Column(
-                        Modifier
+                        Modifier.Companion
                             .fillMaxWidth()
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
                             "Pooja Preferences",
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Companion.Bold,
                             color = Color(0xFF0D47A1)
                         )
 
@@ -469,7 +502,7 @@ fun BookingFormScreen(navController: NavController) {
                                 onValueChange = {},
                                 readOnly = true,
                                 label = { Text("Location Type") },
-                                modifier = Modifier
+                                modifier = Modifier.Companion
                                     .menuAnchor()
                                     .fillMaxWidth()
                             )
@@ -500,7 +533,7 @@ fun BookingFormScreen(navController: NavController) {
                                         "Special Instructions (optional)"
                                 )
                             },
-                            modifier = Modifier
+                            modifier = Modifier.Companion
                                 .fillMaxWidth()
                                 .heightIn(min = 80.dp)
                         )
@@ -509,18 +542,22 @@ fun BookingFormScreen(navController: NavController) {
 
                 // Summary
                 ElevatedCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.Companion.fillMaxWidth(),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.Companion.White),
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                 ) {
                     Column(
-                        Modifier
+                        Modifier.Companion
                             .fillMaxWidth()
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Summary", fontWeight = FontWeight.Bold, color = Color(0xFF0D47A1))
+                        Text(
+                            "Summary",
+                            fontWeight = FontWeight.Companion.Bold,
+                            color = Color(0xFF0D47A1)
+                        )
                         Text("Pooja: ${if (poojaName.isNotBlank()) poojaName else "—"}")
                         Text("Date: ${selectedDate?.let { sdf.format(Date(it)) } ?: "—"}")
                         Text(
@@ -535,14 +572,14 @@ fun BookingFormScreen(navController: NavController) {
 
                 // Consent
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 4.dp)
+                    verticalAlignment = Alignment.Companion.CenterVertically,
+                    modifier = Modifier.Companion.padding(horizontal = 4.dp)
                 ) {
                     Checkbox(
                         checked = consentAccepted,
                         onCheckedChange = { consentAccepted = it }
                     )
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.Companion.width(8.dp))
                     Text(
                         text = "I have read and accept the terms & conditions.",
                         fontSize = 13.sp
@@ -578,6 +615,7 @@ fun BookingFormScreen(navController: NavController) {
                                     snackbarHostState.showSnackbar(validation.message)
                                     return@launch
                                 }
+
                                 BookingValidationResult.Valid -> Unit
                             }
 
@@ -596,7 +634,7 @@ fun BookingFormScreen(navController: NavController) {
                                 }.await()
 
                                 val formattedId =
-                                    String.format(Locale.getDefault(), "EI-%03d", newSeq)
+                                    String.Companion.format(Locale.getDefault(), "EI-%03d", newSeq)
 
                                 val bookingMap = hashMapOf(
                                     "bookingId" to formattedId,
@@ -658,29 +696,29 @@ fun BookingFormScreen(navController: NavController) {
                             }
                         }
                     },
-                    shape = RoundedCornerShape(40.dp),
-                    modifier = Modifier
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(40.dp),
+                    modifier = Modifier.Companion
                         .fillMaxWidth()
                         .height(56.dp)
-                        .shadow(8.dp, RoundedCornerShape(40.dp)),
+                        .shadow(8.dp, androidx.compose.foundation.shape.RoundedCornerShape(40.dp)),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D47A1))
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(
-                            color = Color.White,
-                            modifier = Modifier.size(22.dp),
+                            color = Color.Companion.White,
+                            modifier = Modifier.Companion.size(22.dp),
                             strokeWidth = 2.dp
                         )
                     } else {
                         Text(
                             "Confirm & Submit",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
+                            color = Color.Companion.White,
+                            fontWeight = FontWeight.Companion.Bold
                         )
                     }
                 }
 
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.Companion.height(20.dp))
             }
         }
     }

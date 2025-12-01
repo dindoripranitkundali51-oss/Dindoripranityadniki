@@ -1,55 +1,86 @@
-package com.example.dindoripranityadnyiki.screens
+package com.example.dindoripranityadnyiki.feature.user
 
+import android.R
 import android.os.Parcelable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import coil.request.ImageRequest
-import com.example.dindoripranityadnyiki.R
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
@@ -74,6 +105,7 @@ enum class PoojaCategory(val label: String) {
     PITRU_ANTYA("पितृ / अंत्यविधी पूजा"),
     ALL("सर्व")
 }
+
 @Parcelize
 data class PoojaItem(
     val id: String = "",
@@ -107,7 +139,7 @@ fun PoojaSelectionScreen(
 
     // Soft gradient bg
     val bgBrush = remember {
-        Brush.verticalGradient(
+        Brush.Companion.verticalGradient(
             listOf(Color(0xFFF8FAFF), Color(0xFFFFFFFF), Color(0xFFE3F2FD))
         )
     }
@@ -159,31 +191,31 @@ fun PoojaSelectionScreen(
                 shadowElevation = 6.dp,
                 shape = RectangleShape,
                 color = Color(0xFFB71C1C), // adjust as needed
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .fillMaxWidth()
                     .height(80.dp)
             ) {
                 Column(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .fillMaxWidth()
                         .padding(vertical = 14.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.Companion.CenterHorizontally
                 ) {
                     Text(
                         text = "Vedic ritual services",
                         style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color.White
+                            fontWeight = FontWeight.Companion.ExtraBold,
+                            color = Color.Companion.White
                         ),
-                        modifier = Modifier.alpha(titleAlpha.value)
+                        modifier = Modifier.Companion.alpha(titleAlpha.value)
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.Companion.height(4.dp))
                     Text(
                         text = "Select Your Pooja",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color.White
+                            color = Color.Companion.White
                         ),
-                        modifier = Modifier.alpha(titleAlpha.value)
+                        modifier = Modifier.Companion.alpha(titleAlpha.value)
                     )
                 }
             }
@@ -192,13 +224,13 @@ fun PoojaSelectionScreen(
             // Next button anchored at bottom so it stays visible
             AnimatedVisibility(
                 visible = (selectedPoojaId != null),
-                enter = androidx.compose.animation.fadeIn(tween(250)) +
-                        androidx.compose.animation.slideInVertically(initialOffsetY = { it / 2 }, animationSpec = tween(300)),
-                exit = androidx.compose.animation.fadeOut(tween(200)) +
-                        androidx.compose.animation.slideOutVertically(targetOffsetY = { it / 2 }, animationSpec = tween(200))
+                enter = fadeIn(tween(250)) +
+                        slideInVertically(initialOffsetY = { it / 2 }, animationSpec = tween(300)),
+                exit = fadeOut(tween(200)) +
+                        slideOutVertically(targetOffsetY = { it / 2 }, animationSpec = tween(200))
             ) {
                 Box(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
@@ -223,7 +255,7 @@ fun PoojaSelectionScreen(
         }
     ) { innerPadding ->
         Box(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .background(bgBrush)
                 // apply the scaffold inner padding so content doesn't underlap topBar/bottomBar
@@ -233,11 +265,11 @@ fun PoojaSelectionScreen(
                 LoadingState()
             } else {
                 Column(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .fillMaxSize()
                         .padding(horizontal = 16.dp)
                 ) {
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.Companion.height(8.dp))
 
                     // Search
                     SearchBar(
@@ -246,7 +278,7 @@ fun PoojaSelectionScreen(
                         onClear = { search = TextFieldValue("") }
                     )
 
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.Companion.height(12.dp))
 
                     // Categories
                     CategoryRow(
@@ -254,7 +286,7 @@ fun PoojaSelectionScreen(
                         onSelected = { selectedCategory = it }
                     )
 
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.Companion.height(8.dp))
 
                     // Grid
                     val filtered = filteredPoojas(
@@ -269,7 +301,8 @@ fun PoojaSelectionScreen(
                             selectedId = selectedPoojaId,
                             onSelect = { clickedId ->
                                 // Toggle selection: if already selected → unselect (null), else select clickedId
-                                selectedPoojaId = if (selectedPoojaId == clickedId) null else clickedId
+                                selectedPoojaId =
+                                    if (selectedPoojaId == clickedId) null else clickedId
                             },
                             gridAlpha = gridAlpha.value
                         )
@@ -279,7 +312,7 @@ fun PoojaSelectionScreen(
                         EmptyState(search.text, selectedCategory.label)
                     }
 
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.Companion.height(12.dp))
 
                     // Optional: Show any load-time error as a subtle hint (doesn't block flow)
                     isError?.let {
@@ -287,8 +320,8 @@ fun PoojaSelectionScreen(
                             text = "Note: $it",
                             style = MaterialTheme.typography.labelSmall,
                             color = Color(0xFF6B7280),
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
+                            modifier = Modifier.Companion.fillMaxWidth(),
+                            textAlign = TextAlign.Companion.Center
                         )
                     }
                 }
@@ -296,10 +329,6 @@ fun PoojaSelectionScreen(
         }
     }
 }
-
-// -----------------------------
-// UI Components
-// -----------------------------
 
 @Composable
 private fun SearchBar(
@@ -316,33 +345,33 @@ private fun SearchBar(
         shadowElevation = 10.dp,
         color = Color(0xFFFFE0B2), // थोडं transparent white
         border = BorderStroke(1.4.dp, brandColor.copy(alpha = 0.25f)), // elegant border
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxWidth()
             .height(45.dp)
     ) {
         Row(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .padding(horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Companion.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = null,
                 tint = brandColor.copy(alpha = 0.8f),
-                modifier = Modifier.size(22.dp)
+                modifier = Modifier.Companion.size(22.dp)
             )
 
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.Companion.width(10.dp))
 
-            Box(modifier = Modifier.weight(1f)) {
+            Box(modifier = Modifier.Companion.weight(1f)) {
                 BasicTextField(
                     value = value,
                     onValueChange = onValueChange,
                     textStyle = LocalTextStyle.current.copy(
                         color = Color(0xFF0F172A),
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.Companion.SemiBold
                     ),
                     cursorBrush = SolidColor(brandColor),
                     singleLine = true,
@@ -351,7 +380,7 @@ private fun SearchBar(
                             Text(
                                 text = "Search for a Pooja",
                                 color = Color(0xFF607D8B),
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Companion.Medium
                             )
                         }
                         innerTextField()
@@ -362,7 +391,7 @@ private fun SearchBar(
             AnimatedVisibility(visible = value.text.isNotEmpty()) {
                 IconButton(
                     onClick = onClear,
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(brandColor.copy(alpha = 0.08f))
@@ -418,40 +447,41 @@ private fun FilterChip(
     active: Boolean,
     onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(50)
+    val shape = androidx.compose.foundation.shape.RoundedCornerShape(50)
     val gradient = if (active)
-        Brush.horizontalGradient(listOf(Color(0xFFFFE082), Color(0xFFFFCA28)))
-    else Brush.horizontalGradient(listOf(Color.White, Color.White))
+        Brush.Companion.horizontalGradient(listOf(Color(0xFFFFE082), Color(0xFFFFCA28)))
+    else Brush.Companion.horizontalGradient(listOf(Color.Companion.White, Color.Companion.White))
 
     Surface(
         onClick = onClick,
         shape = shape,
         border = BorderStroke(1.dp, if (active) Color(0xFFFFB300) else Color(0xFFE0E0E0)),
         shadowElevation = if (active) 6.dp else 2.dp,
-        color = Color.Transparent
+        color = Color.Companion.Transparent
     ) {
         Box(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .background(gradient, shape)
                 .padding(horizontal = 18.dp, vertical = 10.dp),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Companion.Center
         ) {
             Text(
                 text = label,
                 color = if (active) Color(0xFF0D47A1) else Color(0xFF37474F),
-                fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
+                fontWeight = if (active) FontWeight.Companion.Bold else FontWeight.Companion.Medium,
                 fontSize = 14.sp
             )
         }
     }
 }
+
 @Composable
 private fun PoojaGrid(
     items: List<PoojaItem>,
     selectedId: String?,
     onSelect: (String) -> Unit,
     gridAlpha: Float,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier.Companion
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -469,57 +499,58 @@ private fun PoojaGrid(
         }
     }
 }
+
 @Composable
 fun PoojaCard(
     item: PoojaItem,
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val cardShape = RoundedCornerShape(16.dp)
-    val borderColor = if (selected) Color(0xFF1565C0) else Color.Transparent
+    val cardShape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+    val borderColor = if (selected) Color(0xFF1565C0) else Color.Companion.Transparent
     val elevation = if (selected) 14.dp else 8.dp
 
     // Slightly taller card so image has breathing room
     Card(
         onClick = onClick,
         shape = cardShape,
-        modifier = Modifier
+        modifier = Modifier.Companion
             .height(200.dp)        // <- वाढवलेली उंची (पूर्वी 200.dp)
             .fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = elevation)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.Companion.fillMaxSize()) {
 
             // 1) Image area (give more height so important parts don't get cropped)
             SubcomposeAsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(item.imageUrl.ifBlank { android.R.drawable.ic_menu_gallery })
+                    .data(item.imageUrl.ifBlank { R.drawable.ic_menu_gallery })
                     .crossfade(true)
                     .build(),
                 contentDescription = item.name,
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .fillMaxWidth()
                     .height(140.dp)   // <- इमेजला पुरेसे vertical space (पूर्वी 92.dp)
                     .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-                contentScale = ContentScale.Crop,
-                alignment = Alignment.Center // keep center; change to TopCenter if subject is top-aligned
+                contentScale = ContentScale.Companion.Crop,
+                alignment = Alignment.Companion.Center // keep center; change to TopCenter if subject is top-aligned
             ) {
                 val state = painter.state
                 if (state is AsyncImagePainter.State.Loading) {
                     Box(
-                        Modifier
+                        Modifier.Companion
                             .fillMaxSize()
                             .background(Color(0xFFF1F5F9)),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Companion.Center
                     ) {
                         CircularProgressIndicator(strokeWidth = 2.dp)
                     }
                 } else if (state is AsyncImagePainter.State.Error) {
                     Box(
-                        Modifier
+                        Modifier.Companion
                             .fillMaxSize()
                             .background(Color(0xFFF1F5F9)),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Companion.Center
                     ) {
                         Text(text = "🕉️", fontSize = 28.sp)
                     }
@@ -530,36 +561,36 @@ fun PoojaCard(
 
             // 2) subtle gradient overlay at image bottom so transition to info panel is smooth
             Box(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .fillMaxWidth()
                     .height(36.dp)
-                    .align(Alignment.TopStart)
+                    .align(Alignment.Companion.TopStart)
                     .offset(y = 140.dp - 36.dp) // place at bottom of image (image height - overlay height)
                     .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.White),
+                        Brush.Companion.verticalGradient(
+                            colors = listOf(Color.Companion.Transparent, Color.Companion.White),
                         )
                     )
             )
 
             // 3) Bottom info panel (name) — reduced height so it doesn't fully cover image
             Box(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
+                modifier = Modifier.Companion
+                    .align(Alignment.Companion.BottomStart)
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(Color.Companion.White)
                     .padding(horizontal = 12.dp, vertical = 12.dp)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.Companion.fillMaxWidth(),
+                    verticalAlignment = Alignment.Companion.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
                         text = item.name,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Companion.SemiBold),
                         maxLines = 2,
-                        textAlign = TextAlign.Center,
+                        textAlign = TextAlign.Companion.Center,
                         color = Color(0xFF0D47A1)
                     )
                 }
@@ -568,28 +599,34 @@ fun PoojaCard(
             // 4) Selected badge top-end
             if (selected) {
                 Box(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .padding(8.dp)
-                        .align(Alignment.TopEnd)
-                        .border(BorderStroke(2.dp, borderColor), RoundedCornerShape(12.dp))
-                        .background(Color.White.copy(alpha = 0.9f), RoundedCornerShape(12.dp))
+                        .align(Alignment.Companion.TopEnd)
+                        .border(
+                            BorderStroke(2.dp, borderColor),
+                            androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                        )
+                        .background(
+                            Color.Companion.White.copy(alpha = 0.9f),
+                            androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                        )
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.Companion.padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.Companion.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = "Selected",
                             tint = Color(0xFF1565C0),
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.Companion.size(18.dp)
                         )
-                        Spacer(Modifier.width(6.dp))
+                        Spacer(Modifier.Companion.width(6.dp))
                         Text(
                             text = "Selected",
                             fontSize = 12.sp,
                             color = Color(0xFF1565C0),
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Companion.SemiBold
                         )
                     }
                 }
@@ -597,7 +634,7 @@ fun PoojaCard(
 
             // 5) subtle inner border
             Box(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .matchParentSize()
                     .padding(6.dp)
                     .border(BorderStroke(1.dp, borderColor.copy(alpha = 0.12f)), cardShape)
@@ -605,37 +642,52 @@ fun PoojaCard(
         }
     }
 }
+
 @Composable
 fun NextButton(enabled: Boolean, onClick: () -> Unit) {
     Surface(
-        shape = RoundedCornerShape(28.dp),
-        modifier = Modifier
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp),
+        modifier = Modifier.Companion
             .fillMaxWidth()
             .height(56.dp),
         shadowElevation = if (enabled) 12.dp else 0.dp,
-        color = Color.Transparent
+        color = Color.Companion.Transparent
     ) {
         Box(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .background(
                     brush = if (enabled)
-                        Brush.horizontalGradient(listOf(Color(0xFF0D47A1), Color(0xFF1976D2)))
-                    else Brush.horizontalGradient(listOf(Color(0xFFF1F5F9), Color(0xFFF1F5F9))),
-                    shape = RoundedCornerShape(28.dp)
+                        Brush.Companion.horizontalGradient(
+                            listOf(
+                                Color(0xFF0D47A1),
+                                Color(0xFF1976D2)
+                            )
+                        )
+                    else Brush.Companion.horizontalGradient(
+                        listOf(
+                            Color(0xFFF1F5F9),
+                            Color(0xFFF1F5F9)
+                        )
+                    ),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp)
                 )
                 .clickable(enabled = enabled) { if (enabled) onClick() },
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Companion.Center
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.Companion.CenterVertically) {
                 Text(
                     text = if (enabled) "Proceed to Booking" else "Select a Pooja",
-                    color = if (enabled) Color.White else Color(0xFF94A3B8),
-                    fontWeight = FontWeight.Bold,
+                    color = if (enabled) Color.Companion.White else Color(0xFF94A3B8),
+                    fontWeight = FontWeight.Companion.Bold,
                     fontSize = 16.sp
                 )
-                Spacer(Modifier.width(8.dp))
-                Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = if (enabled) Color.White else Color(0xFF94A3B8))
+                Spacer(Modifier.Companion.width(8.dp))
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = if (enabled) Color.Companion.White else Color(0xFF94A3B8)
+                )
             }
         }
     }
@@ -645,14 +697,14 @@ fun NextButton(enabled: Boolean, onClick: () -> Unit) {
 @Composable
 private fun LoadingState() {
     Column(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxSize()
             .padding(bottom = 80.dp),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.Companion.CenterHorizontally
     ) {
         CircularProgressIndicator()
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.Companion.height(12.dp))
         Text("Loading poojas…", color = Color(0xFF475569))
     }
 }
@@ -660,26 +712,26 @@ private fun LoadingState() {
 @Composable
 private fun EmptyState(query: String, category: String) {
     Column(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxWidth()
             .padding(vertical = 36.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.Companion.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(android.R.drawable.ic_menu_help),
+            painter = painterResource(R.drawable.ic_menu_help),
             contentDescription = null,
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier.Companion.size(100.dp)
         )
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.Companion.height(12.dp))
         Text(
             "No results",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Companion.Bold)
         )
         val q = if (query.isBlank()) "—" else "\"$query\""
         Text(
             "Try a different search or category.\nQuery: $q · Category: $category",
             style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF6B7280)),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Companion.Center
         )
     }
 }

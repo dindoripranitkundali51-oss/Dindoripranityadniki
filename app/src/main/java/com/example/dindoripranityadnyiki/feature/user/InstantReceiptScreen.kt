@@ -1,8 +1,16 @@
-package com.example.dindoripranityadnyiki.screens
+package com.example.dindoripranityadnyiki.feature.user
 
 import android.content.Intent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -10,9 +18,29 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -32,10 +60,6 @@ import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-/* -------------------------------------------------------------------
-   DATA MODEL + MAPPER
-------------------------------------------------------------------- */
 
 data class InstantReceiptData(
     val bookingId: String,
@@ -131,10 +155,6 @@ fun numberToIndianRupeesWords(amount: Long): String {
     return parts.joinToString(" ") + " Rupees"
 }
 
-/* -------------------------------------------------------------------
-   MAIN SCREEN
-------------------------------------------------------------------- */
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InstantReceiptScreen(navController: NavController) {
@@ -206,38 +226,39 @@ fun InstantReceiptScreen(navController: NavController) {
 
     fun shareReceipt(r: InstantReceiptData) {
         val text = """
-            Dindori Pranit Yadnyiki Receipt
-            -------------------------------
-            Request ID: ${r.bookingId}
-            Puja: ${r.poojaName}
-            Name: ${r.fullName}
-            Mobile: ${r.mobile}
-            Address: ${r.address}
-            Amount: ₹${r.amount} (${r.amountInWords()})
-            Payment Mode: ${r.paymentMode}
-            Date: ${r.dateStr()}
-        """.trimIndent()
+        Dindori Pranit Yadnyiki Receipt
+        -------------------------------
+        Request ID: ${r.bookingId}
+        Puja: ${r.poojaName}
+        Name: ${r.fullName}
+        Mobile: ${r.mobile}
+        Address: ${r.address}
+        Amount: ₹${r.amount} (${r.amountInWords()})
+        Payment Mode: ${r.paymentMode}
+        Date: ${r.dateStr()}
+    """.trimIndent()
 
         val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
+            // इथे फक्त ही ओळ बदल
+            type = "text/plain"              // किंवा setType("text/plain")
             putExtra(Intent.EXTRA_TEXT, text)
         }
         ctx.startActivity(Intent.createChooser(intent, "Share Receipt"))
     }
 
     /* Background gradient */
-    val bg = Brush.verticalGradient(
-        listOf(Color(0xFFE3F2FD), Color.White, Color(0xFFBBDEFB))
+    val bg = Brush.Companion.verticalGradient(
+        listOf(Color(0xFFE3F2FD), Color.Companion.White, Color(0xFFBBDEFB))
     )
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHost) },
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Instant Receipt", color = Color.White) },
+                title = { Text("Instant Receipt", color = Color.Companion.White) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, "Back", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, "Back", tint = Color.Companion.White)
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -248,30 +269,30 @@ fun InstantReceiptScreen(navController: NavController) {
     ) { inner ->
 
         Column(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .padding(inner)
                 .fillMaxSize()
                 .background(bg)
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.Companion.CenterHorizontally
         ) {
 
             /* Search Card */
             Card(
                 shape = RoundedCornerShape(14.dp),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.Companion.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(6.dp)
             ) {
-                Column(Modifier.padding(14.dp)) {
-                    Text("Enter Request ID:", fontWeight = FontWeight.SemiBold)
+                Column(Modifier.Companion.padding(14.dp)) {
+                    Text("Enter Request ID:", fontWeight = FontWeight.Companion.SemiBold)
                     OutlinedTextField(
                         value = bookingId,
                         onValueChange = { bookingId = it.trim() },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.Companion.fillMaxWidth(),
                         placeholder = { Text("Eg. EI-001") }
                     )
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.Companion.height(10.dp))
                     Button(
                         onClick = {
                             scope.launch {
@@ -282,19 +303,19 @@ fun InstantReceiptScreen(navController: NavController) {
                                 }
                             }
                         },
-                        modifier = Modifier
-                            .align(Alignment.End)
+                        modifier = Modifier.Companion
+                            .align(Alignment.Companion.End)
                             .height(44.dp),
-                        shape = RoundedCornerShape(100)
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(100)
                     ) {
                         Icon(Icons.Default.Search, null)
-                        Spacer(Modifier.width(6.dp))
+                        Spacer(Modifier.Companion.width(6.dp))
                         Text("Get Receipt")
                     }
                 }
             }
 
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.Companion.height(18.dp))
 
             when {
                 loading -> {
@@ -304,9 +325,9 @@ fun InstantReceiptScreen(navController: NavController) {
                 error != null -> {
                     Text(
                         error ?: "",
-                        color = Color.Red,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        color = Color.Companion.Red,
+                        textAlign = TextAlign.Companion.Center,
+                        modifier = Modifier.Companion.fillMaxWidth()
                     )
                 }
 
@@ -320,8 +341,8 @@ fun InstantReceiptScreen(navController: NavController) {
                 else -> {
                     Text(
                         "Enter ID or wait for auto-fetch of last booking",
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        textAlign = TextAlign.Companion.Center,
+                        modifier = Modifier.Companion.fillMaxWidth()
                     )
                 }
             }
@@ -329,47 +350,43 @@ fun InstantReceiptScreen(navController: NavController) {
     }
 }
 
-/* -------------------------------------------------------------------
-   UI CARD FOR RECEIPT
-------------------------------------------------------------------- */
-
 @Composable
 fun ReceiptCard(r: InstantReceiptData, onShare: () -> Unit) {
     Card(
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth(),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+        modifier = Modifier.Companion.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = Color.Companion.White)
     ) {
-        Column(Modifier.padding(16.dp)) {
+        Column(Modifier.Companion.padding(16.dp)) {
 
             Box(
-                Modifier
+                Modifier.Companion
                     .fillMaxWidth()
                     .background(Color(0xFF4CAF50))
                     .padding(vertical = 8.dp),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Companion.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(horizontalAlignment = Alignment.Companion.CenterHorizontally) {
                     Text(
                         text = "श्री स्वामी समर्थ कृषी विकास व संशोधन ट्रस्ट",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
+                        color = Color.Companion.White,
+                        fontWeight = FontWeight.Companion.Bold,
                         fontSize = 14.sp
                     )
                     Text(
                         text = "श्री स्वामी समर्थ सेवा व आध्यात्मिक विकास मार्ग (दिंडोरी प्रणित)",
-                        color = Color.White,
+                        color = Color.Companion.White,
                         fontSize = 11.sp
                     )
                 }
             }
 
-            Spacer(Modifier.height(8.dp))
-            Text("पावती नं.: ${r.bookingId}", fontWeight = FontWeight.Bold)
+            Spacer(Modifier.Companion.height(8.dp))
+            Text("पावती नं.: ${r.bookingId}", fontWeight = FontWeight.Companion.Bold)
             Text("दिनांक: ${r.dateStr()}")
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.Companion.height(10.dp))
 
             InfoRow("श्री./श्रीमती :", r.fullName)
             InfoRow("मोबाईल :", r.mobile)
@@ -381,14 +398,14 @@ fun ReceiptCard(r: InstantReceiptData, onShare: () -> Unit) {
             if (!r.chequeNo.isNullOrBlank())
                 InfoRow("Cheque/Ref No.:", r.chequeNo)
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.Companion.height(14.dp))
 
             OutlinedButton(
                 onClick = onShare,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.Companion.fillMaxWidth()
             ) {
                 Icon(Icons.Default.Share, null)
-                Spacer(Modifier.width(6.dp))
+                Spacer(Modifier.Companion.width(6.dp))
                 Text("Share Receipt")
             }
         }
@@ -398,19 +415,19 @@ fun ReceiptCard(r: InstantReceiptData, onShare: () -> Unit) {
 @Composable
 fun InfoRow(label: String, value: String) {
     Row(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxWidth()
             .padding(vertical = 2.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Companion.CenterVertically
     ) {
         Text(
             label,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.weight(0.45f)
+            fontWeight = FontWeight.Companion.SemiBold,
+            modifier = Modifier.Companion.weight(0.45f)
         )
         Text(
             value,
-            modifier = Modifier.weight(0.55f)
+            modifier = Modifier.Companion.weight(0.55f)
         )
     }
 }

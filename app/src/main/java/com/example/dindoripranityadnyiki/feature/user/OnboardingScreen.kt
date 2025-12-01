@@ -1,31 +1,59 @@
-package com.example.dindoripranityadnyiki.screens
+package com.example.dindoripranityadnyiki.feature.user
 
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.navigation.NavController
 import com.example.dindoripranityadnyiki.R
-import androidx.datastore.preferences.core.edit
-import com.example.dindoripranityadnyiki.data.dataStore
-import com.example.dindoripranityadnyiki.data.PrefKeys
+import com.example.dindoripranityadnyiki.core.data.PrefKeys
+import com.example.dindoripranityadnyiki.core.data.dataStore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -34,7 +62,7 @@ import java.io.IOException
 
 @Composable
 fun OnboardingScreen(navController: NavController) {
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     // 🌟 State
@@ -55,7 +83,7 @@ fun OnboardingScreen(navController: NavController) {
         try {
             val prefs = context.dataStore.data
                 .catch { e ->
-                    if (e is IOException) emit(androidx.datastore.preferences.core.emptyPreferences())
+                    if (e is IOException) emit(emptyPreferences())
                     else throw e
                 }
                 .first()
@@ -86,80 +114,80 @@ fun OnboardingScreen(navController: NavController) {
         label = ""
     )
 
-    val animatedBrush = Brush.linearGradient(
+    val animatedBrush = Brush.Companion.linearGradient(
         colors = listOf(
             Color(0xFFBBDEFB),
             Color(0xFFE3F2FD),
             Color(0xFF90CAF9)
         ),
-        start = androidx.compose.ui.geometry.Offset(0f, offset),
-        end = androidx.compose.ui.geometry.Offset(offset, 0f)
+        start = Offset(0f, offset),
+        end = Offset(offset, 0f)
     )
 
     // 🌼 Main UI
     Box(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxSize()
             .background(animatedBrush)
     ) {
         Column(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.Companion.CenterHorizontally
         ) {
             // Scrollable section
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
+                horizontalAlignment = Alignment.Companion.CenterHorizontally,
+                modifier = Modifier.Companion
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
             ) {
-                Spacer(modifier = Modifier.height(30.dp))
+                Spacer(modifier = Modifier.Companion.height(30.dp))
 
                 // 🪔 Logo
                 Image(
                     painter = painterResource(id = R.drawable.app_logo),
                     contentDescription = "App Logo",
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .size(180.dp)
                         .alpha(alphaAnim)
                 )
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.Companion.height(18.dp))
 
                 // ✨ Title
                 Text(
                     text = "✨ Welcome to ✨\nDindori Pranit Yadnyiki",
                     fontSize = 28.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Companion.ExtraBold,
+                    textAlign = TextAlign.Companion.Center,
                     style = TextStyle(
                         color = Color(0xFF0D47A1),
-                        shadow = androidx.compose.ui.graphics.Shadow(
+                        shadow = Shadow(
                             color = Color(0xFF64B5F6),
                             blurRadius = 10f
                         )
                     ),
-                    modifier = Modifier.alpha(alphaAnim)
+                    modifier = Modifier.Companion.alpha(alphaAnim)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.Companion.height(16.dp))
 
                 Text(
                     text = "भाविकांसाठी अधिकृत आध्यात्मिक व्यासपीठ — दिंडोरी प्रणित सेवा मार्गांतर्गत पारदर्शक पूजा बुकिंग आणि विश्वासार्ह गुरुजींची सेवा.",
                     fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Companion.Medium,
                     color = Color(0xFF263238),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
+                    textAlign = TextAlign.Companion.Center,
+                    modifier = Modifier.Companion
                         .fillMaxWidth()
                         .alpha(alphaAnim)
                         .padding(horizontal = 8.dp)
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.Companion.height(20.dp))
 
                 // 🪄 Feature Cards
                 FeatureCardModern(
@@ -189,7 +217,7 @@ fun OnboardingScreen(navController: NavController) {
                     alpha = alphaAnim
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.Companion.height(20.dp))
             }
 
             // 🚀 Continue Button
@@ -205,28 +233,28 @@ fun OnboardingScreen(navController: NavController) {
                     }
                 },
                 shape = RoundedCornerShape(40.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                modifier = Modifier
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Companion.Transparent),
+                modifier = Modifier.Companion
                     .fillMaxWidth()
                     .height(58.dp)
                     .alpha(alphaAnim)
-                    .shadow(10.dp, RoundedCornerShape(40.dp))
+                    .shadow(10.dp, androidx.compose.foundation.shape.RoundedCornerShape(40.dp))
                     .background(
-                        brush = Brush.horizontalGradient(
+                        brush = Brush.Companion.horizontalGradient(
                             listOf(Color(0xFF1976D2), Color(0xFF0D47A1))
                         ),
-                        shape = RoundedCornerShape(40.dp)
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(40.dp)
                     )
             ) {
                 Text(
                     text = "Continue →",
-                    color = Color.White,
+                    color = Color.Companion.White,
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Companion.Bold
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.Companion.height(24.dp))
         }
     }
 }
@@ -242,28 +270,28 @@ private fun FeatureCardModern(
     alpha: Float
 ) {
     Card(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .alpha(alpha),
-        shape = RoundedCornerShape(20.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.85f))
+        colors = CardDefaults.cardColors(containerColor = Color.Companion.White.copy(alpha = 0.85f))
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(16.dp)
+            verticalAlignment = Alignment.Companion.CenterVertically,
+            modifier = Modifier.Companion.padding(16.dp)
         ) {
             Image(
                 painter = painterResource(id = iconRes),
                 contentDescription = null,
-                modifier = Modifier.size(100.dp)
+                modifier = Modifier.Companion.size(100.dp)
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.Companion.width(16.dp))
             Column {
                 Text(
                     text = titleEn,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Companion.Bold,
                     fontSize = 15.sp,
                     color = Color(0xFF0D47A1)
                 )
@@ -272,10 +300,10 @@ private fun FeatureCardModern(
                     fontSize = 13.sp,
                     color = Color(0xFF37474F)
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.Companion.height(6.dp))
                 Text(
                     text = titleMr,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Companion.Bold,
                     fontSize = 14.sp,
                     color = Color(0xFF1565C0)
                 )

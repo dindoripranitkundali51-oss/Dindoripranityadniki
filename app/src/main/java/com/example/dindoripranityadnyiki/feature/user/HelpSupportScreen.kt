@@ -1,24 +1,54 @@
-package com.example.dindoripranityadnyiki.screens
+package com.example.dindoripranityadnyiki.feature.user
 
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -28,14 +58,12 @@ import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-
-// -----------------------------------------------------------------------------
-// DATA MODELS (ONE FILE)
-// -----------------------------------------------------------------------------
 
 enum class SupportCategory {
     BOOKING,
@@ -61,10 +89,6 @@ data class HelpSupportUiState(
     val success: String? = null,
     val profile: SupportUserProfile? = null
 )
-
-// -----------------------------------------------------------------------------
-// REPOSITORY (ONE FILE)
-// -----------------------------------------------------------------------------
 
 class SupportRepository(
     private val db: FirebaseFirestore,
@@ -123,10 +147,6 @@ class SupportRepository(
     }
 }
 
-// -----------------------------------------------------------------------------
-// VIEWMODEL  (ONE FILE)
-// -----------------------------------------------------------------------------
-
 class HelpSupportViewModel(
     private val repo: SupportRepository
 ) : ViewModel() {
@@ -136,7 +156,7 @@ class HelpSupportViewModel(
 
     init {
         // load user profile initially
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             val profile = repo.getUserProfile()
             _state.value = _state.value.copy(profile = profile)
         }
@@ -169,7 +189,7 @@ class HelpSupportViewModel(
             return
         }
 
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             _state.value = s.copy(isSubmitting = true)
 
             val res = repo.submitTicket(
@@ -203,10 +223,6 @@ class HelpSupportVMFactory(
     }
 }
 
-// -----------------------------------------------------------------------------
-// UI SCREEN (ONE FILE)
-// -----------------------------------------------------------------------------
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HelpSupportScreen(navController: NavController) {
@@ -233,10 +249,14 @@ fun HelpSupportScreen(navController: NavController) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Help & Support", color = Color.White) },
+                title = { Text("Help & Support", color = Color.Companion.White) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = null, tint = Color.White)
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = null,
+                            tint = Color.Companion.White
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -248,13 +268,13 @@ fun HelpSupportScreen(navController: NavController) {
     ) { inner ->
 
         Column(
-            Modifier
+            Modifier.Companion
                 .padding(inner)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .background(
-                    Brush.verticalGradient(
-                        listOf(Color(0xFFF5F7FA), Color.White, Color(0xFFF5F7FA))
+                    Brush.Companion.verticalGradient(
+                        listOf(Color(0xFFF5F7FA), Color.Companion.White, Color(0xFFF5F7FA))
                     )
                 )
                 .padding(16.dp),
@@ -262,20 +282,23 @@ fun HelpSupportScreen(navController: NavController) {
         ) {
 
             // Quick Contact Buttons
-            Text("Quick Contact", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("Quick Contact", fontWeight = FontWeight.Companion.Bold, fontSize = 16.sp)
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                Modifier.Companion.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
 
                 Button(
                     onClick = {
                         val i = Intent(Intent.ACTION_DIAL, Uri.parse("tel:0000000000"))
                         ctx.startActivity(i)
                     },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(Color.White)
+                    modifier = Modifier.Companion.weight(1f),
+                    colors = ButtonDefaults.buttonColors(Color.Companion.White)
                 ) {
                     Icon(Icons.Default.Call, contentDescription = null, tint = Color(0xFF0D47A1))
-                    Spacer(Modifier.width(6.dp))
+                    Spacer(Modifier.Companion.width(6.dp))
                     Text("Call", color = Color(0xFF0D47A1))
                 }
 
@@ -284,11 +307,11 @@ fun HelpSupportScreen(navController: NavController) {
                         val url = "https://wa.me/0000000000"
                         ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
                     },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(Color.White)
+                    modifier = Modifier.Companion.weight(1f),
+                    colors = ButtonDefaults.buttonColors(Color.Companion.White)
                 ) {
                     Icon(Icons.Default.Chat, contentDescription = null, tint = Color(0xFF0D47A1))
-                    Spacer(Modifier.width(6.dp))
+                    Spacer(Modifier.Companion.width(6.dp))
                     Text("WhatsApp", color = Color(0xFF0D47A1))
                 }
 
@@ -296,10 +319,12 @@ fun HelpSupportScreen(navController: NavController) {
                     onClick = {
                         val intent = Intent(Intent.ACTION_SENDTO).apply {
                             data = Uri.parse("mailto:support@example.com")
+                            // किंवा: setData(Uri.parse("mailto:support@example.com"))
                         }
                         ctx.startActivity(intent)
                     },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f),
                     colors = ButtonDefaults.buttonColors(Color.White)
                 ) {
                     Icon(Icons.Default.Email, contentDescription = null, tint = Color(0xFF0D47A1))
@@ -307,36 +332,38 @@ fun HelpSupportScreen(navController: NavController) {
                     Text("Email", color = Color(0xFF0D47A1))
                 }
             }
+                // FAQ
+            Text("FAQ", fontWeight = FontWeight.Companion.Bold, fontSize = 16.sp)
 
-            // FAQ
-            Text("FAQ", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-
-            SupportFaq("How do I get my Booking ID?", "You can find the booking ID on Dashboard or Instant Receipt screen.")
+            SupportFaq(
+                "How do I get my Booking ID?",
+                "You can find the booking ID on Dashboard or Instant Receipt screen."
+            )
             SupportFaq("How to Cancel Request?", "Menu → Cancel Request → Select Booking → Submit.")
             SupportFaq("Payment deducted?", "Wait 5 minutes. If not updated, raise support ticket.")
 
             // Ticket Form
-            Text("Raise a Ticket", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("Raise a Ticket", fontWeight = FontWeight.Companion.Bold, fontSize = 16.sp)
 
             OutlinedTextField(
                 value = st.subject,
                 onValueChange = vm::updateSubject,
                 label = { Text("Subject") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.Companion.fillMaxWidth()
             )
 
             OutlinedTextField(
                 value = st.message,
                 onValueChange = vm::updateMessage,
                 label = { Text("Message") },
-                modifier = Modifier.fillMaxWidth().height(120.dp)
+                modifier = Modifier.Companion.fillMaxWidth().height(120.dp)
             )
 
             OutlinedTextField(
                 value = st.bookingId,
                 onValueChange = vm::updateBookingId,
                 label = { Text("Booking ID (optional)") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.Companion.fillMaxWidth()
             )
 
             // Category dropdown
@@ -349,7 +376,7 @@ fun HelpSupportScreen(navController: NavController) {
                     readOnly = true,
                     label = { Text("Category") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expand) },
-                    modifier = Modifier.menuAnchor().fillMaxWidth()
+                    modifier = Modifier.Companion.menuAnchor().fillMaxWidth()
                 )
 
                 ExposedDropdownMenu(expanded = expand, onDismissRequest = { expand = false }) {
@@ -368,11 +395,11 @@ fun HelpSupportScreen(navController: NavController) {
             Button(
                 onClick = { vm.submit() },
                 enabled = !st.isSubmitting,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
+                modifier = Modifier.Companion.fillMaxWidth().height(48.dp),
                 shape = RoundedCornerShape(28.dp)
             ) {
                 if (st.isSubmitting) {
-                    CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp)
+                    CircularProgressIndicator(color = Color.Companion.White, strokeWidth = 2.dp)
                 } else {
                     Text("Submit Ticket")
                 }
@@ -381,21 +408,17 @@ fun HelpSupportScreen(navController: NavController) {
     }
 }
 
-// -----------------------------------------------------------------------------
-// FAQ Component (ONE FILE)
-// -----------------------------------------------------------------------------
-
 @Composable
 fun SupportFaq(q: String, a: String) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.Companion.fillMaxWidth(),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-        colors = CardDefaults.cardColors(Color.White)
+        colors = CardDefaults.cardColors(Color.Companion.White)
     ) {
-        Column(Modifier.padding(12.dp)) {
-            Text(q, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(4.dp))
+        Column(Modifier.Companion.padding(12.dp)) {
+            Text(q, fontWeight = FontWeight.Companion.Bold)
+            Spacer(Modifier.Companion.height(4.dp))
             Text(a, fontSize = 13.sp)
         }
     }
