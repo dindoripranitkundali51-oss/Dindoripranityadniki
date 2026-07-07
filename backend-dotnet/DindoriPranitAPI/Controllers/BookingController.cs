@@ -447,11 +447,13 @@ namespace DindoriPranitAPI.Controllers
                     new { GurujiId = expertId }
                 );
 
+#pragma warning disable CS8602
                 if (lastLoc != null && lastLoc.Lat != 0.0 && lastLoc.Lng != 0.0 && lastLoc.UpdatedAt != null)
                 {
                     double prevLat = (double)lastLoc.Lat;
                     double prevLng = (double)lastLoc.Lng;
                     DateTime prevTime = (DateTime)lastLoc.UpdatedAt;
+#pragma warning restore CS8602
 
                     double travelDistance = CalculateDistanceInMetres(request.Lat, request.Lng, prevLat, prevLng);
                     double timeSeconds = (DateTime.UtcNow - prevTime).TotalSeconds;

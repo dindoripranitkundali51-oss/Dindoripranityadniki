@@ -50,7 +50,7 @@ namespace DindoriPranitAPI.Middleware
             {
                 context.Response.ContentType = "application/json";
                 context.Response.StatusCode = (int)cachedResponse.ResponseStatusCode;
-                context.Response.Headers.Add("X-Cache-Lookup", "Hit-Idempotent");
+                context.Response.Headers["X-Cache-Lookup"] = "Hit-Idempotent";
                 
                 string body = cachedResponse.ResponseBody;
                 await context.Response.WriteAsync(body);

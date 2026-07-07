@@ -27,12 +27,14 @@ namespace DindoriPranitAPI.Services
                 return string.Empty;
             }
 
+#pragma warning disable CS0618
             GoogleCredential credential;
             using (var stream = new FileStream(_serviceAccountJsonPath, FileMode.Open, FileAccess.Read))
             {
                 credential = GoogleCredential.FromStream(stream)
                     .CreateScoped("https://www.googleapis.com/auth/firebase.messaging");
             }
+#pragma warning restore CS0618
 
             var token = await credential.UnderlyingCredential.GetAccessTokenForRequestAsync();
             return token;
