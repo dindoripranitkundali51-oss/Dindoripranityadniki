@@ -1,4 +1,4 @@
-// AuthController - Handles user registration, credentials generation, password, and OTP login - V14
+// AuthController - Handles user registration, credentials generation, password, and OTP login - V15
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
