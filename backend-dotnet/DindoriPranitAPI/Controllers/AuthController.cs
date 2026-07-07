@@ -1,3 +1,4 @@
+// AuthController - Handles user registration, credentials generation, password, and OTP login
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
