@@ -19,12 +19,35 @@ namespace DindoriPranitAPI.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly string _connectionString;
+        private readonly DindoriPranitAPI.Services.EmailService _emailService;
+        private readonly Services.FcmService _fcmService;
 
-        public AuthController(IConfiguration configuration)
+        public AuthController(
+            IConfiguration configuration,
+            DindoriPranitAPI.Services.EmailService emailService,
+            Services.FcmService fcmService)
         {
             _configuration = configuration;
             _connectionString = _configuration.GetConnectionString("DefaultConnection") 
                 ?? throw new InvalidOperationException("DefaultConnection connection string not found.");
+            _emailService = emailService;
+            _fcmService = fcmService;
+        }
+
+        private string HashPassword(string password, string salt)
+        {
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var combinedBytes = Encoding.UTF8.GetBytes(password + salt);
+            var hashBytes = sha256.ComputeHash(combinedBytes);
+            return Convert.ToBase64String(hashBytes);
+        }
+
+        private string GenerateRandomPassword()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, 8)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
         [HttpPost("login")]
@@ -33,13 +56,53 @@ namespace DindoriPranitAPI.Controllers
         {
             if (string.IsNullOrWhiteSpace(request.Mobile))
             {
-                return BadRequest(new { success = false, message = "Mobile number is required." });
+                return BadRequest(new { success = false, message = "Mobile number / Email is required." });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Password) && string.IsNullOrWhiteSpace(request.Otp))
+            {
+                return BadRequest(new { success = false, message = "Either password or OTP must be provided." });
             }
 
             using var connection = new SqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            // 1. Try to find the user in Users table
+            // 1. Verify OTP if provided
+            if (!string.IsNullOrWhiteSpace(request.Otp))
+            {
+                var otpRecord = await connection.QueryFirstOrDefaultAsync<dynamic>(
+                    "SELECT * FROM LoginOtps WHERE Mobile = @Mobile",
+                    new { Mobile = request.Mobile }
+                );
+
+                if (otpRecord == null)
+                {
+                    return BadRequest(new { success = false, message = "No active OTP request found for this mobile / email." });
+                }
+
+                if (DateTime.UtcNow > (DateTime)otpRecord.ExpiresAt)
+                {
+                    return BadRequest(new { success = false, message = "OTP has expired." });
+                }
+
+                var calculatedHash = HashPassword(request.Otp, "loginsalt");
+                if (calculatedHash != otpRecord.OtpHash.ToString())
+                {
+                    return Unauthorized(new { success = false, message = "Invalid OTP code." });
+                }
+
+                // OTP is verified. Delete it to prevent reuse.
+                await connection.ExecuteAsync(
+                    "DELETE FROM LoginOtps WHERE Mobile = @Mobile",
+                    new { Mobile = request.Mobile }
+                );
+            }
+
+            // 2. Fetch Profile
+            dynamic? profile = null;
+            string role = "Yajman";
+
+            // Check Users
             var user = await connection.QueryFirstOrDefaultAsync<dynamic>(
                 "sp_User_GetByMobile",
                 new { Mobile = request.Mobile },
@@ -52,47 +115,176 @@ namespace DindoriPranitAPI.Controllers
                 {
                     return StatusCode(403, new { success = false, message = "Your account is blocked or deleted." });
                 }
+                profile = user;
+                role = "Yajman";
+            }
+            else
+            {
+                // Check Guruji
+                var guruji = await connection.QueryFirstOrDefaultAsync<dynamic>(
+                    "sp_Guruji_GetByMobile",
+                    new { Mobile = request.Mobile },
+                    commandType: CommandType.StoredProcedure
+                );
 
-                var token = GenerateJwtToken(user.Uid.ToString(), "Yajman");
-                return Ok(new { success = true, token, role = "Yajman", profile = user });
+                if (guruji != null)
+                {
+                    if (guruji.Status == "Blocked" || guruji.Status == "Rejected")
+                    {
+                        return StatusCode(403, new { success = false, message = "Your expert profile is suspended or rejected." });
+                    }
+                    profile = guruji;
+                    role = guruji.ExpertType.ToString();
+                }
+                else
+                {
+                    // Check Admins
+                    var admin = await connection.QueryFirstOrDefaultAsync<dynamic>(
+                        "SELECT * FROM Admins WHERE Email = @Email",
+                        new { Email = request.Mobile }
+                    );
+
+                    if (admin != null)
+                    {
+                        if (admin.Status == "Blocked")
+                        {
+                            return StatusCode(403, new { success = false, message = "Admin account is blocked." });
+                        }
+                        profile = admin;
+                        role = "Admin";
+                    }
+                }
             }
 
-            // 2. Try to find the user in Guruji table
-            var guruji = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                "sp_Guruji_GetByMobile",
+            if (profile == null)
+            {
+                return NotFound(new { success = false, message = "Mobile number / Email not registered." });
+            }
+
+            // 3. Verify Password if OTP was NOT used
+            if (string.IsNullOrWhiteSpace(request.Otp))
+            {
+                string dbHash = profile.PasswordHash?.ToString() ?? string.Empty;
+                if (!string.IsNullOrEmpty(dbHash))
+                {
+                    var inputHash = HashPassword(request.Password!, profile.Uid.ToString());
+                    if (inputHash != dbHash)
+                    {
+                        return Unauthorized(new { success = false, message = "Invalid mobile number or password." });
+                    }
+                }
+            }
+
+            var token = GenerateJwtToken(profile.Uid.ToString(), role);
+            return Ok(new { success = true, token, role = role, profile = profile });
+        }
+
+        [HttpPost("otp/send")]
+        [EnableRateLimiting("LoginPolicy")]
+        public async Task<IActionResult> SendOtp([FromBody] SendOtpRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Mobile))
+            {
+                return BadRequest(new { success = false, message = "Mobile number / Email is required." });
+            }
+
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            string? email = null;
+            string? fcmToken = null;
+            bool userExists = false;
+
+            // Try to find user in Users
+            var user = await connection.QueryFirstOrDefaultAsync<dynamic>(
+                "sp_User_GetByMobile",
                 new { Mobile = request.Mobile },
                 commandType: CommandType.StoredProcedure
             );
 
-            if (guruji != null)
+            if (user != null)
             {
-                if (guruji.Status == "Blocked" || guruji.Status == "Rejected")
-                {
-                    return StatusCode(403, new { success = false, message = "Your expert profile is suspended or rejected." });
-                }
+                email = user.Email?.ToString();
+                fcmToken = user.FcmToken?.ToString();
+                userExists = true;
+            }
+            else
+            {
+                // Try to find user in Guruji
+                var guruji = await connection.QueryFirstOrDefaultAsync<dynamic>(
+                    "sp_Guruji_GetByMobile",
+                    new { Mobile = request.Mobile },
+                    commandType: CommandType.StoredProcedure
+                );
 
-                var token = GenerateJwtToken(guruji.Uid.ToString(), guruji.ExpertType.ToString()); // "Guruji" or "VastuExpert"
-                return Ok(new { success = true, token, role = guruji.ExpertType.ToString(), profile = guruji });
+                if (guruji != null)
+                {
+                    email = guruji.Email?.ToString();
+                    fcmToken = guruji.FcmToken?.ToString();
+                    userExists = true;
+                }
+                else
+                {
+                    // Try to find in Admins
+                    var admin = await connection.QueryFirstOrDefaultAsync<dynamic>(
+                        "SELECT * FROM Admins WHERE Email = @Email",
+                        new { Email = request.Mobile }
+                    );
+
+                    if (admin != null)
+                    {
+                        email = admin.Email?.ToString();
+                        userExists = true;
+                    }
+                }
             }
 
-            // 3. Try to find in Admins table
-            var admin = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                "SELECT * FROM Admins WHERE Email = @Email",
-                new { Email = request.Mobile } // Admin logs in using email address
+            if (!userExists)
+            {
+                return NotFound(new { success = false, message = "Mobile number / Email is not registered." });
+            }
+
+            // Generate a 6-digit random OTP
+            var otp = new Random().Next(100000, 999999).ToString();
+            var otpHash = HashPassword(otp, "loginsalt");
+            var expiresAt = DateTime.UtcNow.AddMinutes(10);
+
+            // Save OTP in Database
+            await connection.ExecuteAsync(
+                @"MERGE INTO LoginOtps AS target
+                  USING (SELECT @Mobile AS Mobile) AS source
+                  ON (target.Mobile = source.Mobile)
+                  WHEN MATCHED THEN
+                      UPDATE SET OtpHash = @OtpHash, ExpiresAt = @ExpiresAt
+                  WHEN NOT MATCHED THEN
+                      INSERT (Mobile, OtpHash, ExpiresAt) VALUES (@Mobile, @OtpHash, @ExpiresAt);",
+                new { Mobile = request.Mobile, OtpHash = otpHash, ExpiresAt = expiresAt }
             );
 
-            if (admin != null)
+            // Send via Email (free)
+            if (!string.IsNullOrWhiteSpace(email))
             {
-                if (admin.Status == "Blocked")
-                {
-                    return StatusCode(403, new { success = false, message = "Admin account is blocked." });
-                }
-
-                var token = GenerateJwtToken(admin.Uid.ToString(), "Admin");
-                return Ok(new { success = true, token, role = "Admin", profile = admin });
+                _ = _emailService.SendEmailAsync(
+                    email,
+                    "Dindori Pranit Yadnyiki - Login OTP",
+                    $"Your One-Time Password (OTP) for login is: {otp}\n\nThis OTP is valid for 10 minutes. Please do not share it with anyone."
+                );
             }
 
-            return NotFound(new { success = false, message = "Mobile number / Email not registered." });
+            // Send via FCM notification (free)
+            if (!string.IsNullOrEmpty(fcmToken))
+            {
+                _ = _fcmService.SendNotificationAsync(
+                    fcmToken,
+                    "Login OTP Code",
+                    $"Your One-Time Password (OTP) for login is: {otp}"
+                );
+            }
+
+            return Ok(new { 
+                success = true, 
+                message = "OTP sent successfully."
+            });
         }
 
         [HttpPost("register/user")]
@@ -104,9 +296,13 @@ namespace DindoriPranitAPI.Controllers
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
+                var uid = Guid.NewGuid().ToString();
+                var rawPassword = GenerateRandomPassword();
+                var passwordHash = HashPassword(rawPassword, uid);
+
                 var parameters = new
                 {
-                    Uid = Guid.NewGuid().ToString(),
+                    Uid = uid,
                     request.FullName,
                     request.Mobile,
                     request.Email,
@@ -114,7 +310,8 @@ namespace DindoriPranitAPI.Controllers
                     request.District,
                     request.Pincode,
                     Lat = request.Lat ?? 0.0,
-                    Lng = request.Lng ?? 0.0
+                    Lng = request.Lng ?? 0.0,
+                    PasswordHash = passwordHash
                 };
 
                 await connection.ExecuteAsync(
@@ -123,8 +320,17 @@ namespace DindoriPranitAPI.Controllers
                     commandType: CommandType.StoredProcedure
                 );
 
-                var token = GenerateJwtToken(parameters.Uid, "Yajman");
-                return Ok(new { success = true, token, role = "Yajman", uid = parameters.Uid });
+                if (!string.IsNullOrWhiteSpace(request.Email))
+                {
+                    _ = _emailService.SendEmailAsync(
+                        request.Email, 
+                        "Dindori Pranit Yadnyiki - Registration Credentials", 
+                        $"Welcome {request.FullName},\n\nYour account has been registered successfully.\n\nYour Login Credentials:\nUsername/Mobile: {request.Mobile}\nPassword: {rawPassword}\n\nPlease keep these details secure."
+                    );
+                }
+
+                var token = GenerateJwtToken(uid, "Yajman");
+                return Ok(new { success = true, token, role = "Yajman", uid = uid, password = rawPassword });
             }
             catch (SqlException ex) when (ex.Number == 2627) // Unique constraint violation
             {
@@ -146,9 +352,13 @@ namespace DindoriPranitAPI.Controllers
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
+                var uid = Guid.NewGuid().ToString();
+                var rawPassword = GenerateRandomPassword();
+                var passwordHash = HashPassword(rawPassword, uid);
+
                 var parameters = new
                 {
-                    Uid = Guid.NewGuid().ToString(),
+                    Uid = uid,
                     request.FullName,
                     request.Mobile,
                     request.Email,
@@ -158,7 +368,8 @@ namespace DindoriPranitAPI.Controllers
                     Lat = request.Lat ?? 0.0,
                     Lng = request.Lng ?? 0.0,
                     request.Expertises,
-                    request.ExpertType // "Guruji" or "VastuExpert"
+                    request.ExpertType, // "Guruji" or "VastuExpert"
+                    PasswordHash = passwordHash
                 };
 
                 await connection.ExecuteAsync(
@@ -168,8 +379,8 @@ namespace DindoriPranitAPI.Controllers
                 );
 
                 // Set initial mock URLs, PAN/Aadhar numbers, and KycStatus as 'Submitted'
-                string panMockUrl = $"https://dindoripranit.storage.local/kyc/{parameters.Uid}_pan.jpg";
-                string aadharMockUrl = $"https://dindoripranit.storage.local/kyc/{parameters.Uid}_aadhar.jpg";
+                string panMockUrl = $"https://dindoripranit.storage.local/kyc/{uid}_pan.jpg";
+                string aadharMockUrl = $"https://dindoripranit.storage.local/kyc/{uid}_aadhar.jpg";
 
                 await connection.ExecuteAsync(
                     @"UPDATE Guruji 
@@ -183,7 +394,7 @@ namespace DindoriPranitAPI.Controllers
                           Status = 'Pending' 
                       WHERE Uid = @Uid",
                     new { 
-                        Uid = parameters.Uid, 
+                        Uid = uid, 
                         PanUrl = panMockUrl, 
                         AadharUrl = aadharMockUrl, 
                         PanNumber = request.PanNumber ?? "",
@@ -193,17 +404,27 @@ namespace DindoriPranitAPI.Controllers
                     }
                 );
 
+                if (!string.IsNullOrWhiteSpace(request.Email))
+                {
+                    _ = _emailService.SendEmailAsync(
+                        request.Email, 
+                        "Dindori Pranit Yadnyiki - Expert Profile Registered", 
+                        $"Welcome {request.FullName},\n\nYour profile has been submitted for verification.\n\nYour Login Credentials:\nUsername/Mobile: {request.Mobile}\nPassword: {rawPassword}\n\nNote: Your profile will be active once approved by the Admin."
+                    );
+                }
+
                 // Generate JWT Auth Token for instant login capability (but profile is still Pending approval)
-                var token = GenerateJwtToken(parameters.Uid, request.ExpertType);
+                var token = GenerateJwtToken(uid, request.ExpertType);
 
                 return Ok(new { 
                     success = true, 
                     message = "Registration successful. Profile pending admin verification.", 
-                    uid = parameters.Uid,
+                    uid = uid,
                     token,
                     role = request.ExpertType,
+                    password = rawPassword,
                     profile = new {
-                        Uid = parameters.Uid,
+                        Uid = uid,
                         FullName = request.FullName,
                         Mobile = request.Mobile,
                         Email = request.Email,
@@ -315,8 +536,15 @@ namespace DindoriPranitAPI.Controllers
     public class LoginRequest
     {
         [Required]
-        [Phone]
-        [StringLength(15, MinimumLength = 10)]
+        public string Mobile { get; set; } = string.Empty;
+
+        public string? Password { get; set; }
+        public string? Otp { get; set; }
+    }
+
+    public class SendOtpRequest
+    {
+        [Required]
         public string Mobile { get; set; } = string.Empty;
     }
 
