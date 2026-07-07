@@ -19,14 +19,14 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: 'web-admin-panel/package-lock.json'
 
       - name: Install Web Admin Dependencies
         run: |
           cd web-admin-panel
-          npm ci
+          npm install --legacy-peer-deps
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
