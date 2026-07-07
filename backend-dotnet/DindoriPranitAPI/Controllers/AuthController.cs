@@ -1,4 +1,4 @@
-// AuthController - Handles user registration, credentials generation, password, and OTP login - V12
+// AuthController - Handles user registration, credentials generation, password, and OTP login - V13
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -55,131 +55,139 @@ namespace DindoriPranitAPI.Controllers
         [EnableRateLimiting("LoginPolicy")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Mobile))
+            try
             {
-                return BadRequest(new { success = false, message = "Mobile number / Email is required." });
-            }
-
-            if (string.IsNullOrWhiteSpace(request.Password) && string.IsNullOrWhiteSpace(request.Otp))
-            {
-                return BadRequest(new { success = false, message = "Either password or OTP must be provided." });
-            }
-
-            using var connection = new SqlConnection(_connectionString);
-            await connection.OpenAsync();
-
-            // 1. Verify OTP if provided
-            if (!string.IsNullOrWhiteSpace(request.Otp))
-            {
-                var otpRecord = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                    "SELECT * FROM LoginOtps WHERE Mobile = @Mobile",
-                    new { Mobile = request.Mobile }
-                );
-
-                if (otpRecord == null)
+                if (string.IsNullOrWhiteSpace(request.Mobile))
                 {
-                    return BadRequest(new { success = false, message = "No active OTP request found for this mobile / email." });
+                    return BadRequest(new { success = false, message = "Mobile number / Email is required." });
                 }
 
-                if (DateTime.UtcNow > (DateTime)otpRecord.ExpiresAt)
+                if (string.IsNullOrWhiteSpace(request.Password) && string.IsNullOrWhiteSpace(request.Otp))
                 {
-                    return BadRequest(new { success = false, message = "OTP has expired." });
+                    return BadRequest(new { success = false, message = "Either password or OTP must be provided." });
                 }
 
-                var calculatedHash = HashPassword(request.Otp, "loginsalt");
-                if (calculatedHash != otpRecord.OtpHash.ToString())
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                // 1. Verify OTP if provided
+                if (!string.IsNullOrWhiteSpace(request.Otp))
                 {
-                    return Unauthorized(new { success = false, message = "Invalid OTP code." });
+                    var otpRecord = await connection.QueryFirstOrDefaultAsync<dynamic>(
+                        "SELECT * FROM LoginOtps WHERE Mobile = @Mobile",
+                        new { Mobile = request.Mobile }
+                    );
+
+                    if (otpRecord == null)
+                    {
+                        return BadRequest(new { success = false, message = "No active OTP request found for this mobile / email." });
+                    }
+
+                    if (DateTime.UtcNow > (DateTime)otpRecord.ExpiresAt)
+                    {
+                        return BadRequest(new { success = false, message = "OTP has expired." });
+                    }
+
+                    var calculatedHash = HashPassword(request.Otp, "loginsalt");
+                    if (calculatedHash != otpRecord.OtpHash.ToString())
+                    {
+                        return Unauthorized(new { success = false, message = "Invalid OTP code." });
+                    }
+
+                    // OTP is verified. Delete it to prevent reuse.
+                    await connection.ExecuteAsync(
+                        "DELETE FROM LoginOtps WHERE Mobile = @Mobile",
+                        new { Mobile = request.Mobile }
+                    );
                 }
 
-                // OTP is verified. Delete it to prevent reuse.
-                await connection.ExecuteAsync(
-                    "DELETE FROM LoginOtps WHERE Mobile = @Mobile",
-                    new { Mobile = request.Mobile }
-                );
-            }
+                // 2. Fetch Profile
+                dynamic? profile = null;
+                string role = "Yajman";
 
-            // 2. Fetch Profile
-            dynamic? profile = null;
-            string role = "Yajman";
-
-            // Check Users
-            var user = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                "sp_User_GetByMobile",
-                new { Mobile = request.Mobile },
-                commandType: CommandType.StoredProcedure
-            );
-
-            if (user != null)
-            {
-                if (user.Status == "Blocked" || user.Status == "Deleted")
-                {
-                    return StatusCode(403, new { success = false, message = "Your account is blocked or deleted." });
-                }
-                profile = user;
-                role = "Yajman";
-            }
-            else
-            {
-                // Check Guruji
-                var guruji = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                    "sp_Guruji_GetByMobile",
+                // Check Users
+                var user = await connection.QueryFirstOrDefaultAsync<dynamic>(
+                    "sp_User_GetByMobile",
                     new { Mobile = request.Mobile },
                     commandType: CommandType.StoredProcedure
                 );
 
-                if (guruji != null)
+                if (user != null)
                 {
-                    if (guruji.Status == "Blocked" || guruji.Status == "Rejected")
+                    if (user.Status == "Blocked" || user.Status == "Deleted")
                     {
-                        return StatusCode(403, new { success = false, message = "Your expert profile is suspended or rejected." });
+                        return StatusCode(403, new { success = false, message = "Your account is blocked or deleted." });
                     }
-                    profile = guruji;
-                    role = guruji.ExpertType.ToString();
+                    profile = user;
+                    role = "Yajman";
                 }
                 else
                 {
-                    // Check Admins (Supports Email or Mobile lookup)
-                    var admin = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                        "SELECT * FROM Admins WHERE Email = @Identifier OR Mobile = @Identifier",
-                        new { Identifier = request.Mobile }
+                    // Check Guruji
+                    var guruji = await connection.QueryFirstOrDefaultAsync<dynamic>(
+                        "sp_Guruji_GetByMobile",
+                        new { Mobile = request.Mobile },
+                        commandType: CommandType.StoredProcedure
                     );
 
-                    if (admin != null)
+                    if (guruji != null)
                     {
-                        if (admin.Status == "Blocked")
+                        if (guruji.Status == "Blocked" || guruji.Status == "Rejected")
                         {
-                            return StatusCode(403, new { success = false, message = "Admin account is blocked." });
+                            return StatusCode(403, new { success = false, message = "Your expert profile is suspended or rejected." });
                         }
-                        profile = admin;
-                        role = "Admin";
+                        profile = guruji;
+                        role = guruji.ExpertType.ToString();
+                    }
+                    else
+                    {
+                        // Check Admins (Supports Email or Mobile lookup)
+                        var admin = await connection.QueryFirstOrDefaultAsync<dynamic>(
+                            "SELECT * FROM Admins WHERE Email = @Identifier OR Mobile = @Identifier",
+                            new { Identifier = request.Mobile }
+                        );
+
+                        if (admin != null)
+                        {
+                            if (admin.Status == "Blocked")
+                            {
+                                return StatusCode(403, new { success = false, message = "Admin account is blocked." });
+                            }
+                            profile = admin;
+                            role = "Admin";
+                        }
                     }
                 }
-            }
 
-            if (profile == null)
-            {
-                return NotFound(new { success = false, message = "Mobile number / Email not registered." });
-            }
-
-            // 3. Verify Password if OTP was NOT used
-            if (string.IsNullOrWhiteSpace(request.Otp))
-            {
-                string dbHash = profile.PasswordHash?.ToString() ?? string.Empty;
-                if (string.IsNullOrEmpty(dbHash))
+                if (profile == null)
                 {
-                    return Unauthorized(new { success = false, message = "Login using password is not enabled for this account. Please request an OTP or contact support." });
+                    return NotFound(new { success = false, message = "Mobile number / Email not registered." });
                 }
 
-                var inputHash = HashPassword(request.Password!, profile.Uid.ToString());
-                if (inputHash != dbHash)
+                // 3. Verify Password if OTP was NOT used
+                if (string.IsNullOrWhiteSpace(request.Otp))
                 {
-                    return Unauthorized(new { success = false, message = "Invalid mobile number or password." });
-                }
-            }
+                    string dbHash = profile.PasswordHash?.ToString() ?? string.Empty;
+                    if (string.IsNullOrEmpty(dbHash))
+                    {
+                        return Unauthorized(new { success = false, message = "Login using password is not enabled for this account. Please request an OTP or contact support." });
+                    }
 
-            var token = GenerateJwtToken(profile.Uid.ToString(), role);
-            return Ok(new { success = true, token, role = role, profile = profile });
+                    var inputHash = HashPassword(request.Password!, profile.Uid.ToString());
+                    if (inputHash != dbHash)
+                    {
+                        return Unauthorized(new { success = false, message = "Invalid mobile number or password." });
+                    }
+                }
+
+                var token = GenerateJwtToken(profile.Uid.ToString(), role);
+                return Ok(new { success = true, token, role = role, profile = profile });
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error during login: {ex}");
+                return StatusCode(500, new { success = false, message = ex.ToString() });
+            }
         }
 
         [HttpPost("otp/send")]
