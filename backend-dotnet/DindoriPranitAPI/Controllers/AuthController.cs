@@ -1,4 +1,4 @@
-// AuthController - Handles user registration, credentials generation, password, and OTP login - V6
+// AuthController - Handles user registration, credentials generation, password, and OTP login - V10
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -139,10 +139,10 @@ namespace DindoriPranitAPI.Controllers
                 }
                 else
                 {
-                    // Check Admins
+                    // Check Admins (Supports Email or Mobile lookup)
                     var admin = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                        "SELECT * FROM Admins WHERE Email = @Email",
-                        new { Email = request.Mobile }
+                        "SELECT * FROM Admins WHERE Email = @Identifier OR Mobile = @Identifier",
+                        new { Identifier = request.Mobile }
                     );
 
                     if (admin != null)
@@ -166,13 +166,15 @@ namespace DindoriPranitAPI.Controllers
             if (string.IsNullOrWhiteSpace(request.Otp))
             {
                 string dbHash = profile.PasswordHash?.ToString() ?? string.Empty;
-                if (!string.IsNullOrEmpty(dbHash))
+                if (string.IsNullOrEmpty(dbHash))
                 {
-                    var inputHash = HashPassword(request.Password!, profile.Uid.ToString());
-                    if (inputHash != dbHash)
-                    {
-                        return Unauthorized(new { success = false, message = "Invalid mobile number or password." });
-                    }
+                    return Unauthorized(new { success = false, message = "Login using password is not enabled for this account. Please request an OTP or contact support." });
+                }
+
+                var inputHash = HashPassword(request.Password!, profile.Uid.ToString());
+                if (inputHash != dbHash)
+                {
+                    return Unauthorized(new { success = false, message = "Invalid mobile number or password." });
                 }
             }
 
@@ -226,10 +228,10 @@ namespace DindoriPranitAPI.Controllers
                 }
                 else
                 {
-                    // Try to find in Admins
+                    // Try to find in Admins (Supports Email or Mobile lookup)
                     var admin = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                        "SELECT * FROM Admins WHERE Email = @Email",
-                        new { Email = request.Mobile }
+                        "SELECT * FROM Admins WHERE Email = @Identifier OR Mobile = @Identifier",
+                        new { Identifier = request.Mobile }
                     );
 
                     if (admin != null)
@@ -298,7 +300,7 @@ namespace DindoriPranitAPI.Controllers
                 await connection.OpenAsync();
 
                 var uid = Guid.NewGuid().ToString();
-                var rawPassword = GenerateRandomPassword();
+                var rawPassword = string.IsNullOrWhiteSpace(request.Password) ? GenerateRandomPassword() : request.Password;
                 var passwordHash = HashPassword(rawPassword, uid);
 
                 var parameters = new
@@ -354,7 +356,7 @@ namespace DindoriPranitAPI.Controllers
                 await connection.OpenAsync();
 
                 var uid = Guid.NewGuid().ToString();
-                var rawPassword = GenerateRandomPassword();
+                var rawPassword = string.IsNullOrWhiteSpace(request.Password) ? GenerateRandomPassword() : request.Password;
                 var passwordHash = HashPassword(rawPassword, uid);
 
                 var parameters = new
@@ -575,6 +577,7 @@ namespace DindoriPranitAPI.Controllers
 
         public double? Lat { get; set; }
         public double? Lng { get; set; }
+        public string? Password { get; set; }
     }
 
     public class ExpertRegisterRequest
@@ -618,5 +621,6 @@ namespace DindoriPranitAPI.Controllers
         [Required]
         [StringLength(12)]
         public string AadharNumber { get; set; } = string.Empty;
+        public string? Password { get; set; }
     }
 }

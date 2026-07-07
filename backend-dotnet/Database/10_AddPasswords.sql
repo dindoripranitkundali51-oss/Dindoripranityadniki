@@ -17,6 +17,13 @@ BEGIN
 END
 GO
 
+-- Add Mobile column to Admins table to support Mobile + OTP logins for Admin
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Admins') AND name = 'Mobile')
+BEGIN
+    ALTER TABLE Admins ADD Mobile NVARCHAR(20) NULL;
+END
+GO
+
 -- Create LoginOtps Table for Login OTP verification
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID('LoginOtps') AND type = 'U')
 BEGIN

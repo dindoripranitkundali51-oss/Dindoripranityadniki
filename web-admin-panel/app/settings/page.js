@@ -23,6 +23,90 @@ export default function SystemSettings() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  // For Password Change
+  const [newPassword, setNewPassword] = useState("");
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwMessage, setPwMessage] = useState("");
+  const [pwError, setPwError] = useState("");
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPwMessage("");
+    setPwError("");
+    if (!newPassword) {
+      setPwError("New password cannot be empty.");
+      return;
+    }
+    setPwSaving(true);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "//dindoripranitapi.somee.com/api/v1";
+      const token = typeof window !== "undefined" ? localStorage.getItem("jwt_auth_token") || "" : "";
+      const res = await fetch(`${baseUrl}/admin/manage/change-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": token ? `Bearer ${token}` : ""
+        },
+        body: JSON.stringify({ newPassword })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPwMessage("Password updated successfully.");
+        setNewPassword("");
+      } else {
+        setPwError(data.message || "Failed to update password.");
+      }
+    } catch (err) {
+      setPwError("Failed to connect to API.");
+    } finally {
+      setPwSaving(false);
+    }
+  };
+
+  // For Adding Admin
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminMobile, setAdminMobile] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminSaving, setAdminSaving] = useState(false);
+  const [adminMessage, setAdminMessage] = useState("");
+  const [adminError, setAdminError] = useState("");
+
+  const handleAddAdmin = async (e) => {
+    e.preventDefault();
+    setAdminMessage("");
+    setAdminError("");
+    if (!adminEmail || !adminMobile || !adminPassword) {
+      setAdminError("Email, Mobile, and Password are all required.");
+      return;
+    }
+    setAdminSaving(true);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "//dindoripranitapi.somee.com/api/v1";
+      const token = typeof window !== "undefined" ? localStorage.getItem("jwt_auth_token") || "" : "";
+      const res = await fetch(`${baseUrl}/admin/manage/admins`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": token ? `Bearer ${token}` : ""
+        },
+        body: JSON.stringify({ email: adminEmail.trim(), mobile: adminMobile.trim(), password: adminPassword })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAdminMessage("New administrator added successfully.");
+        setAdminEmail("");
+        setAdminMobile("");
+        setAdminPassword("");
+      } else {
+        setAdminError(data.message || "Failed to add administrator.");
+      }
+    } catch (err) {
+      setAdminError("Failed to connect to API.");
+    } finally {
+      setAdminSaving(false);
+    }
+  };
+
   useEffect(() => {
     const loadConfig = async () => {
       try {
@@ -323,6 +407,82 @@ export default function SystemSettings() {
               onChange={(e) => patchUiSettings("reports_auto_refresh_sec", e.target.value)}
             />
           </Field>
+        </div>
+      </Section>
+
+      <Section title="Admin Credentials & Security" icon={<ShieldAlert size={18} className="text-emerald-600" />}>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          {/* Card 1: Change Password */}
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+            <h4 className="mb-4 text-sm font-semibold text-slate-800">Change Admin Password</h4>
+            {pwError && <div className="mb-3 text-xs font-semibold text-red-600">{pwError}</div>}
+            {pwMessage && <div className="mb-3 text-xs font-semibold text-green-600">{pwMessage}</div>}
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <Field label="New Password">
+                <input
+                  type="password"
+                  required
+                  placeholder="Enter new secure password"
+                  className="w-full rounded border bg-white p-2 text-sm"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </Field>
+              <button
+                type="submit"
+                disabled={pwSaving}
+                className="w-full rounded bg-blue-600 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-75"
+              >
+                {pwSaving ? "Updating..." : "Update Password"}
+              </button>
+            </form>
+          </div>
+
+          {/* Card 2: Create Admin */}
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+            <h4 className="mb-4 text-sm font-semibold text-slate-800">Add New Administrator</h4>
+            {adminError && <div className="mb-3 text-xs font-semibold text-red-600">{adminError}</div>}
+            {adminMessage && <div className="mb-3 text-xs font-semibold text-green-600">{adminMessage}</div>}
+            <form onSubmit={handleAddAdmin} className="space-y-3">
+              <Field label="Admin Email">
+                <input
+                  type="email"
+                  required
+                  placeholder="admin@example.com"
+                  className="w-full rounded border bg-white p-2 text-sm"
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                />
+              </Field>
+              <Field label="Admin Mobile">
+                <input
+                  type="text"
+                  required
+                  placeholder="9022341138"
+                  className="w-full rounded border bg-white p-2 text-sm"
+                  value={adminMobile}
+                  onChange={(e) => setAdminMobile(e.target.value)}
+                />
+              </Field>
+              <Field label="Admin Password">
+                <input
+                  type="password"
+                  required
+                  placeholder="Enter temporary password"
+                  className="w-full rounded border bg-white p-2 text-sm"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                />
+              </Field>
+              <button
+                type="submit"
+                disabled={adminSaving}
+                className="w-full rounded bg-emerald-600 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-75"
+              >
+                {adminSaving ? "Adding Admin..." : "Add Administrator"}
+              </button>
+            </form>
+          </div>
         </div>
       </Section>
 

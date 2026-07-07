@@ -669,6 +669,77 @@ namespace DindoriPranitAPI.Controllers
             return Ok(new { success = true });
         }
 
+        [HttpPost("manage/change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.NewPassword))
+            {
+                return BadRequest(new { success = false, message = "New password is required." });
+            }
+
+            var adminId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(adminId))
+            {
+                return Unauthorized(new { success = false, message = "Admin session invalid." });
+            }
+
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            var passwordHash = HashPassword(request.NewPassword, adminId);
+
+            await connection.ExecuteAsync(
+                "UPDATE Admins SET PasswordHash = @PasswordHash WHERE Uid = @AdminId",
+                new { PasswordHash = passwordHash, AdminId = adminId }
+            );
+
+            await LogAdminAction(connection, "CHANGE_PASSWORD", adminId, "Admin changed password");
+
+            return Ok(new { success = true, message = "Password updated successfully." });
+        }
+
+        [HttpPost("manage/admins")]
+        public async Task<IActionResult> AddNewAdmin([FromBody] AddAdminRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Mobile) || string.IsNullOrWhiteSpace(request.Password))
+            {
+                return BadRequest(new { success = false, message = "Email, Mobile, and Password are all required." });
+            }
+
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            // Check if admin with same email or mobile already exists
+            var existingAdmin = await connection.QueryFirstOrDefaultAsync<dynamic>(
+                "SELECT * FROM Admins WHERE Email = @Email OR Mobile = @Mobile",
+                new { Email = request.Email, Mobile = request.Mobile }
+            );
+
+            if (existingAdmin != null)
+            {
+                return Conflict(new { success = false, message = "An administrator with this email or mobile number already exists." });
+            }
+
+            var uid = "admin_" + Guid.NewGuid().ToString("N");
+            var passwordHash = HashPassword(request.Password, uid);
+
+            await connection.ExecuteAsync(
+                "INSERT INTO Admins (Uid, Email, Mobile, Status, PasswordHash) VALUES (@Uid, @Email, @Mobile, 'Active', @PasswordHash)",
+                new { Uid = uid, Email = request.Email, Mobile = request.Mobile, PasswordHash = passwordHash }
+            );
+
+            await LogAdminAction(connection, "CREATE_ADMIN", uid, $"Created new admin account for {request.Email}");
+
+            return Ok(new { success = true, message = "New administrator registered successfully." });
+        }
+
+        private string HashPassword(string password, string salt)
+        {
+            var combinedBytes = System.Text.Encoding.UTF8.GetBytes(password + salt);
+            var hashBytes = System.Security.Cryptography.SHA256.HashData(combinedBytes);
+            return Convert.ToBase64String(hashBytes);
+        }
+
         private async Task LogAdminAction(SqlConnection connection, string action, string targetId, string details)
         {
             var adminId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "system";
@@ -738,5 +809,17 @@ namespace DindoriPranitAPI.Controllers
     public class UpdateLegalDocRequest
     {
         public string? Content { get; set; }
+    }
+
+    public class ChangePasswordRequest
+    {
+        public string NewPassword { get; set; } = string.Empty;
+    }
+
+    public class AddAdminRequest
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Mobile { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
     }
 }
