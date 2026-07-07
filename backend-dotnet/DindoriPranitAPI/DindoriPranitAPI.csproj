@@ -14,18 +14,18 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
-  <!-- AUTOMATION TARGETS: Runs automatically on every Build / Publish -->
-  <Target Name="CompileMasterSql" BeforeTargets="Build">
+  <!-- AUTOMATION TARGETS: Runs automatically on every Build / Publish (Windows only, skipped on Linux CI) -->
+  <Target Name="CompileMasterSql" BeforeTargets="Build" Condition="'$(OS)' == 'Windows_NT'">
     <Exec Command="powershell -Command &quot;Get-Content -Path '$(ProjectDir)../Database/0*.sql' | Set-Content -Path '$(ProjectDir)../DindoriPranitDb_Complete_Setup.sql'&quot;" />
   </Target>
 
-  <Target Name="BuildAndEmbedAdminPanel" BeforeTargets="Publish">
+  <Target Name="BuildAndEmbedAdminPanel" BeforeTargets="Publish" Condition="'$(OS)' == 'Windows_NT'">
     <Message Text="Building and embedding Next.js Web Admin Panel..." Importance="high" />
     <Exec Command="powershell -Command &quot;$env:NEXT_PUBLIC_BASE_PATH='/admin'; npm run build&quot;" WorkingDirectory="$(ProjectDir)../../web-admin-panel" />
     <Exec Command="powershell -Command &quot;if (Test-Path '$(ProjectDir)wwwroot/admin') { Remove-Item '$(ProjectDir)wwwroot/admin' -Recurse -Force }; New-Item -ItemType Directory -Path '$(ProjectDir)wwwroot/admin' -Force | Out-Null; Copy-Item -Path '$(ProjectDir)../../web-admin-panel/out/*' -Destination '$(ProjectDir)wwwroot/admin' -Recurse -Force&quot;" />
   </Target>
 
-  <Target Name="ZipPublishOutput" AfterTargets="Publish">
+  <Target Name="ZipPublishOutput" AfterTargets="Publish" Condition="'$(OS)' == 'Windows_NT'">
     <Exec Command="powershell -Command &quot;if (Test-Path '$(ProjectDir)../publish_release.zip') { Remove-Item '$(ProjectDir)../publish_release.zip' -Force }; Compress-Archive -Path '$(PublishDir)*' -DestinationPath '$(ProjectDir)../publish_release.zip' -Force&quot;" />
   </Target>
 

@@ -28,14 +28,21 @@ jobs:
           cd web-admin-panel
           npm install --legacy-peer-deps
 
+      - name: Build Next.js Web Admin Panel (Linux Runner)
+        env:
+          NEXT_PUBLIC_BASE_PATH: /admin
+        run: |
+          cd web-admin-panel
+          npm run build
+          mkdir -p ../backend-dotnet/DindoriPranitAPI/wwwroot/admin
+          cp -r out/* ../backend-dotnet/DindoriPranitAPI/wwwroot/admin/
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
       - name: Publish API Project
-        env:
-          NEXT_PUBLIC_BASE_PATH: /admin
         run: dotnet publish backend-dotnet/DindoriPranitAPI/DindoriPranitAPI.csproj -c Release -o ./backend-dotnet/publish_out
 
       - name: Deploy via FTP to Somee
