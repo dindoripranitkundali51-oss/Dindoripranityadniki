@@ -9,7 +9,7 @@ using System.Threading.RateLimiting;
 var builder = WebApplication.CreateBuilder(args);
 
 // Force the correct database connection string to bypass Somee's default connection string overrides
-builder.Configuration["ConnectionStrings:DefaultConnection"] = "workstation id=DindoriPranitDb.mssql.somee.com;packet size=4096;user id=dindoriadmin_SQLLogin_1;pwd=98njtsyv8o;data source=tcp:DindoriPranitDb.mssql.somee.com,1433;persist security info=False;initial catalog=DindoriPranitDb;TrustServerCertificate=True;MultipleActiveResultSets=True";
+builder.Configuration["ConnectionStrings:DefaultConnection"] = "Server=tcp:DindoriPranitDb.mssql.somee.com,1433;Database=DindoriPranitDb;User Id=dindoriadmin_SQLLogin_1;Password=98njtsyv8o;Encrypt=true;TrustServerCertificate=true;MultipleActiveResultSets=true;";
 
 // Add services to the container.
 builder.Services.AddControllers();

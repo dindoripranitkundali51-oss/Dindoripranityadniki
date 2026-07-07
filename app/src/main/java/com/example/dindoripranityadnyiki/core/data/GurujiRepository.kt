@@ -1,15 +1,8 @@
 package com.example.dindoripranityadnyiki.core.data
 
 import android.util.Log
-import com.example.dindoripranityadnyiki.core.network.ApiService
-import com.example.dindoripranityadnyiki.core.network.toBookingModel
-import com.example.dindoripranityadnyiki.core.network.UpdateStatusRequest
-import com.example.dindoripranityadnyiki.core.network.VerifyOtpRequest
-import com.example.dindoripranityadnyiki.core.network.WithdrawalRequest
-import com.example.dindoripranityadnyiki.core.network.GurujiAvailabilityRequest
-import com.example.dindoripranityadnyiki.core.network.toDomain
+import com.example.dindoripranityadnyiki.core.network.*
 import com.example.dindoripranityadnyiki.core.util.Resource
-import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -53,7 +46,7 @@ class GurujiRepository @Inject constructor(
             val email = dataStoreManager.readString(PrefKeys.USER_EMAIL).first()
             val address = dataStoreManager.readString(PrefKeys.USER_ADDRESS).first()
             val district = dataStoreManager.readString(PrefKeys.USER_DISTRICT).first()
-            
+
             val token = getBearerToken()
             val availResponse = apiService.getAvailability(token)
             val dates = if (availResponse.isSuccessful && availResponse.body()?.success == true) {
@@ -93,7 +86,7 @@ class GurujiRepository @Inject constructor(
         awaitClose { job.cancel() }
     }
 
-    fun listenToAssignedBookings(onUpdate: (List<BookingModel>) -> Unit): ListenerRegistration {
+    fun listenToAssignedBookings(onUpdate: (List<BookingModel>) -> Unit): RepositorySubscription {
         val job = CoroutineScope(Dispatchers.IO).launch {
             while (isActive) {
                 try {
@@ -113,10 +106,10 @@ class GurujiRepository @Inject constructor(
                 delay(15000) // Poll every 15 seconds
             }
         }
-        return CoroutineListenerRegistration(job)
+        return CoroutineSubscription(job)
     }
 
-    fun listenToProfile(onUpdate: (GurujiProfile?) -> Unit): ListenerRegistration {
+    fun listenToProfile(onUpdate: (GurujiProfile?) -> Unit): RepositorySubscription {
         val job = CoroutineScope(Dispatchers.IO).launch {
             while (isActive) {
                 val profile = getGurujiProfile()
@@ -126,10 +119,10 @@ class GurujiRepository @Inject constructor(
                 delay(20000) // Poll every 20 seconds
             }
         }
-        return CoroutineListenerRegistration(job)
+        return CoroutineSubscription(job)
     }
 
-    fun listenToTransactions(onUpdate: (List<PaymentTransaction>) -> Unit): ListenerRegistration {
+    fun listenToTransactions(onUpdate: (List<PaymentTransaction>) -> Unit): RepositorySubscription {
         val job = CoroutineScope(Dispatchers.IO).launch {
             while (isActive) {
                 try {
@@ -146,7 +139,7 @@ class GurujiRepository @Inject constructor(
                 delay(20000) // Poll every 20 seconds
             }
         }
-        return CoroutineListenerRegistration(job)
+        return CoroutineSubscription(job)
     }
 
     suspend fun updateBookingStatus(

@@ -1,19 +1,17 @@
 package com.example.dindoripranityadnyiki.feature.user
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dindoripranityadnyiki.core.data.DataStoreManager
 import com.example.dindoripranityadnyiki.core.data.PrefKeys
 import com.example.dindoripranityadnyiki.core.data.SacredSevaRepository
 import com.example.dindoripranityadnyiki.core.data.UserRepository
-import com.example.dindoripranityadnyiki.core.data.toPresentationMap
+import com.example.dindoripranityadnyiki.core.data.RepositorySubscription
 import com.example.dindoripranityadnyiki.core.network.ApiService
 import com.example.dindoripranityadnyiki.core.network.UpdateFcmTokenRequest
 import com.example.dindoripranityadnyiki.core.util.PredictiveEngine
 import com.example.dindoripranityadnyiki.core.util.Resource
 import com.example.dindoripranityadnyiki.core.util.SessionManager
-import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,9 +49,8 @@ class UserHomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(UserHomeUiState())
     val uiState: StateFlow<UserHomeUiState> = _uiState.asStateFlow()
 
-    private var activeBookingListener: ListenerRegistration? = null
-    private var historyListener: ListenerRegistration? = null
-    private var panchangListener: ListenerRegistration? = null
+    private var activeBookingSubscription: RepositorySubscription? = null
+    private var historySubscription: RepositorySubscription? = null
 
     init {
         viewModelScope.launch {
@@ -68,21 +65,27 @@ class UserHomeViewModel @Inject constructor(
 
     private fun loadDashboard(userId: String) {
         _uiState.value = _uiState.value.copy(isLoading = true)
-        
+
         messaging.subscribeToTopic("all_users")
         refreshFcmToken()
 
-        // 1. Load Profile
+        // 1. Load Profile from Local DataStore/Cache (Production Flow)
         userRepository.getUserProfileFlow().onEach { resource ->
             when (resource) {
                 is Resource.Success -> {
                     val profile = resource.data
-                    val data = profile?.toPresentationMap()
-                    val status = profile?.status ?: "Active"
-                    data?.let { cacheUserProfile(it) }
+                    // In Production, we'll map fields from Profile to UI
+                    val data = mapOf(
+                        "fullName" to (profile?.fullName ?: ""),
+                        "mobile" to (profile?.mobile ?: ""),
+                        "email" to (profile?.email ?: ""),
+                        "address" to (profile?.address ?: ""),
+                        "district" to (profile?.district ?: ""),
+                        "status" to (profile?.status ?: "Active")
+                    )
                     _uiState.value = _uiState.value.copy(
                         userProfile = data,
-                        isBlocked = status == "Blocked" || status == "Deleted",
+                        isBlocked = profile?.status == "Blocked" || profile?.status == "Deleted",
                         isLoading = false
                     )
                 }
@@ -91,30 +94,36 @@ class UserHomeViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
 
-        // 2. Load Available Poojas
+        // 2. Load Available Poojas from REST API
         viewModelScope.launch {
             try {
                 val poojas = sevaRepository.getSacredServices()
-                _uiState.value = _uiState.value.copy(poojaList = poojas.map { it.toPresentationMap() })
+                _uiState.value = _uiState.value.copy(poojaList = poojas.map {
+                    mapOf("id" to it.id, "name" to it.name, "nameEn" to it.nameEn)
+                })
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = "Failed to load poojas")
             }
         }
 
-        // 3. Setup listeners with proper error handling
+        // 3. Setup REST Polling Subscriptions (Replaces Firestore Realtime)
         try {
-            activeBookingListener = sevaRepository.listenToActiveBooking(userId) { active ->
-                _uiState.value = _uiState.value.copy(upcomingBooking = active?.toPresentationMap())
+            activeBookingSubscription = sevaRepository.listenToActiveBooking(userId) { active ->
+                _uiState.value = _uiState.value.copy(upcomingBooking = if (active != null) {
+                    mapOf("id" to active.id, "poojaName" to active.poojaName, "status" to active.status)
+                } else null)
             }
 
-            historyListener = sevaRepository.listenToBookingHistory(userId) { list ->
-                _uiState.value = _uiState.value.copy(pastBookings = list.map { it.toPresentationMap() })
-                // Update predictive suggestion when we have new history
+            // History polling also simplified for production
+            historySubscription = sevaRepository.listenToBookingHistory(userId) { list ->
+                _uiState.value = _uiState.value.copy(pastBookings = list.map {
+                    mapOf("id" to it.id, "poojaName" to it.poojaName, "status" to it.status)
+                })
                 updatePredictiveSuggestion()
             }
         } catch (e: Exception) {
             _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = "Failed to setup booking listeners")
-            cleanupListeners()
+            cleanupSubscriptions()
         }
     }
 
@@ -123,27 +132,6 @@ class UserHomeViewModel @Inject constructor(
         val panchang = _uiState.value.todayPanchang
         val suggestion = predictiveEngine.suggestNextSeva(pastBookings, panchang)
         _uiState.value = _uiState.value.copy(predictiveSuggestion = suggestion)
-    }
-
-    private fun cacheUserProfile(profile: Map<String, Any>) {
-        viewModelScope.launch {
-            dataStoreManager.saveStringPreference(PrefKeys.USER_NAME, profile.firstString("fullName", "name", "displayName"))
-            dataStoreManager.saveStringPreference(PrefKeys.USER_MOBILE, profile.firstString("mobile", "phone", "phoneNumber", "contactPhone"))
-            dataStoreManager.saveStringPreference(PrefKeys.USER_EMAIL, profile.firstString("email"))
-            dataStoreManager.saveStringPreference(PrefKeys.USER_ADDRESS, profile.firstString("address", "fullAddress", "homeAddress", "full_address"))
-            dataStoreManager.saveStringPreference(PrefKeys.USER_DISTRICT, profile.firstString("district", "selectedDistrict", "city"))
-            dataStoreManager.saveStringPreference(PrefKeys.USER_PINCODE, profile.firstString("pincode", "pinCode", "postalCode"))
-            
-            // Save coordinates
-            val latVal = (profile["lat"] ?: profile["latitude"])?.toString() ?: "0.0"
-            val lngVal = (profile["lng"] ?: profile["longitude"])?.toString() ?: "0.0"
-            dataStoreManager.saveStringPreference(PrefKeys.USER_LAT, latVal)
-            dataStoreManager.saveStringPreference(PrefKeys.USER_LNG, lngVal)
-        }
-    }
-
-    private fun Map<String, Any>.firstString(vararg keys: String): String {
-        return keys.firstNotNullOfOrNull { key -> this[key] as? String }?.trim().orEmpty()
     }
 
     private fun refreshFcmToken() {
@@ -162,20 +150,19 @@ class UserHomeViewModel @Inject constructor(
 
     fun logout(context: android.content.Context, onComplete: () -> Unit) {
         viewModelScope.launch {
-            cleanupListeners()
+            cleanupSubscriptions()
             SessionManager.signOut(context)
             onComplete()
         }
     }
 
-    private fun cleanupListeners() {
-        activeBookingListener?.remove()
-        historyListener?.remove()
-        panchangListener?.remove()
+    private fun cleanupSubscriptions() {
+        activeBookingSubscription?.remove()
+        historySubscription?.remove()
     }
 
     override fun onCleared() {
-        cleanupListeners()
+        cleanupSubscriptions()
         super.onCleared()
     }
 }

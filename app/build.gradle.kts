@@ -3,8 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     id("kotlin-parcelize")
     alias(libs.plugins.google.gms.google.services)
-    alias(libs.plugins.google.firebase.crashlytics)
-    alias(libs.plugins.google.firebase.perf)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
@@ -46,7 +44,7 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        
+
         buildConfigField("String", "RAZORPAY_KEY", "\"$razorpayKey\"")
         buildConfigField("String", "MAPS_KEY", "\"$mapsKey\"")
         resValue("string", "runtime_razorpay_key", razorpayKey)
@@ -73,7 +71,7 @@ android {
         }
         debug {
             isMinifyEnabled = false
-            applicationIdSuffix = null 
+            applicationIdSuffix = null
         }
     }
 
@@ -131,24 +129,10 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.core.splashscreen)
 
+    // Firebase (Only Messaging/FCM remains)
     implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.auth.ktx)
-    implementation(libs.firebase.firestore)
-    implementation(libs.firebase.firestore.ktx)
-    implementation(libs.firebase.functions)
     implementation(libs.firebase.messaging)
-    implementation(libs.firebase.storage)
-    implementation(libs.firebase.storage.ktx)
-    implementation(libs.firebase.config)
-    implementation(libs.firebase.analytics)
-    implementation(libs.firebase.appcheck.playintegrity)
-    debugImplementation(libs.firebase.appcheck.debug)
-    
-    // Crashlytics and Performance Monitoring
-    implementation(libs.firebase.crashlytics)
-    implementation(libs.firebase.perf)
-    
+
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.razorpay.checkout)
     implementation(libs.itext.core)

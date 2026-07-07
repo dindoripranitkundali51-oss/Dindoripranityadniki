@@ -1,17 +1,21 @@
 package com.example.dindoripranityadnyiki.core.data
 
 import android.util.Log
-import com.example.dindoripranityadnyiki.core.network.ApiService
-import com.example.dindoripranityadnyiki.core.network.CreateBookingRequest
-import com.example.dindoripranityadnyiki.core.network.toBookingModel
-import com.google.firebase.firestore.ListenerRegistration
+import com.example.dindoripranityadnyiki.core.network.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
-// Mock ListenerRegistration cancel wrapper
-class CoroutineListenerRegistration(private val job: Job) : ListenerRegistration {
+/**
+ * Interface to manage background polling or listeners.
+ * Replaces Firestore's ListenerRegistration.
+ */
+interface RepositorySubscription {
+    fun remove()
+}
+
+class CoroutineSubscription(private val job: Job) : RepositorySubscription {
     override fun remove() {
         job.cancel()
     }
@@ -56,7 +60,7 @@ class SacredSevaRepository @Inject constructor(
         }
     }
 
-    fun monitorEngagement(bookingId: String, onUpdate: (BookingModel?) -> Unit): ListenerRegistration {
+    fun monitorEngagement(bookingId: String, onUpdate: (BookingModel?) -> Unit): RepositorySubscription {
         val job = CoroutineScope(Dispatchers.IO).launch {
             while (isActive) {
                 try {
@@ -73,10 +77,10 @@ class SacredSevaRepository @Inject constructor(
                 delay(15000) // Poll every 15 seconds
             }
         }
-        return CoroutineListenerRegistration(job)
+        return CoroutineSubscription(job)
     }
 
-    fun listenToActiveBooking(userId: String, onUpdate: (BookingModel?) -> Unit): ListenerRegistration {
+    fun listenToActiveBooking(userId: String, onUpdate: (BookingModel?) -> Unit): RepositorySubscription {
         val job = CoroutineScope(Dispatchers.IO).launch {
             while (isActive) {
                 try {
@@ -98,42 +102,22 @@ class SacredSevaRepository @Inject constructor(
                 delay(15000) // Poll every 15 seconds
             }
         }
-        return CoroutineListenerRegistration(job)
+        return CoroutineSubscription(job)
     }
 
-    fun listenToBookingHistory(userId: String, onUpdate: (List<BookingModel>) -> Unit): ListenerRegistration {
-        val job = CoroutineScope(Dispatchers.IO).launch {
-            while (isActive) {
-                try {
-                    val response = apiService.getUserBookings(getBearerToken())
-                    if (response.isSuccessful && response.body()?.success == true) {
-                        val list = response.body()?.data.orEmpty()
-                        val sorted = list.map { it.toBookingModel() }
-                            .sortedWith(compareBy<BookingModel>(::historyPriority).thenByDescending { it.id })
-                        withContext(Dispatchers.Main) {
-                            onUpdate(sorted)
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.e("SacredSevaRepo", "listenToBookingHistory failed", e)
-                }
-                delay(20000) // Poll every 20 seconds
-            }
-        }
-        return CoroutineListenerRegistration(job)
+    suspend fun updateBookingStatus(bookingId: String, status: String): Result<Boolean> = runCatching {
+        val response = apiService.updateBookingStatus(getBearerToken(), bookingId, UpdateStatusRequest(status))
+        response.isSuccessful && response.body()?.success == true
     }
 
-    private fun activePriority(booking: BookingModel): Int = booking.currentUserActionPriority ?: when (booking.currentUserAction) {
-        "PAY_NOW" -> 1; "CHECK_OTP_NOTIFICATION" -> 2; "WAIT_PAYMENT_VERIFICATION" -> 3; "RATE_SEVA" -> 4; "VIEW_RECEIPT" -> 8
-        else -> when (booking.status) { "Payment Pending" -> 1; "Awaiting Verification" -> 2; "In Progress" -> 3; "Accepted" -> 4; "Assigned" -> 5; "Pending" -> 6; else -> 9 }
+    suspend fun requestCompletionOtp(bookingId: String): Result<Boolean> = runCatching {
+        val response = apiService.requestCompletionOtp(getBearerToken(), bookingId)
+        response.isSuccessful && response.body()?.success == true
     }
 
-    private fun historyPriority(booking: BookingModel): Int = when {
-        booking.status in setOf("Completed", "Paid") && booking.feedbackSubmittedAt == null && booking.rating == null -> 1
-        booking.status in setOf("Payment Pending", "Awaiting Verification") -> 2
-        booking.status == "Paid" || booking.paymentStatus == "Paid" -> 3
-        booking.status == "Cancelled" -> 5
-        else -> 4
+    suspend fun verifyCompletionOtp(bookingId: String, otp: String, amount: Double): Result<Boolean> = runCatching {
+        val response = apiService.verifyCompletionOtp(getBearerToken(), bookingId, VerifyOtpRequest(otp, amount))
+        response.isSuccessful && response.body()?.success == true
     }
 
     suspend fun createBookingWithCounter(request: BookingCreateRequest): Result<String> = runCatching {
@@ -165,4 +149,17 @@ class SacredSevaRepository @Inject constructor(
             emptyList()
         }
     }.getOrElse { emptyList() }
+
+    private fun activePriority(booking: BookingModel): Int = booking.currentUserActionPriority ?: when (booking.currentUserAction) {
+        "PAY_NOW" -> 1; "CHECK_OTP_NOTIFICATION" -> 2; "WAIT_PAYMENT_VERIFICATION" -> 3; "RATE_SEVA" -> 4; "VIEW_RECEIPT" -> 8
+        else -> when (booking.status) { "Payment Pending" -> 1; "Awaiting Verification" -> 2; "In Progress" -> 3; "Accepted" -> 4; "Assigned" -> 5; "Pending" -> 6; else -> 9 }
+    }
+
+    private fun historyPriority(booking: BookingModel): Int = when {
+        booking.status in setOf("Completed", "Paid") && booking.feedbackSubmittedAt == null && booking.rating == null -> 1
+        booking.status in setOf("Payment Pending", "Awaiting Verification") -> 2
+        booking.status == "Paid" || booking.paymentStatus == "Paid" -> 3
+        booking.status == "Cancelled" -> 5
+        else -> 4
+    }
 }
