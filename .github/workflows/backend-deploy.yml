@@ -48,7 +48,7 @@ jobs:
       - name: Deploy via FTP to Somee
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ftp.somee.com
+          server: dindoripranitapi.somee.com
           username: ${{ secrets.SOMEE_FTP_USERNAME }}
           password: ${{ secrets.SOMEE_FTP_PASSWORD }}
           local-dir: ./backend-dotnet/publish_out/
