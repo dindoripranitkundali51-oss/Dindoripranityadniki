@@ -41,7 +41,7 @@ export const signInAdmin = async (email, password) => {
   const res = await fetch(`${baseUrl}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mobile: loginEmail }) // AuthController maps mobile to email for Admins!
+    body: JSON.stringify({ mobile: loginEmail, password: password })
   });
   
   if (!res.ok) {
