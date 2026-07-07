@@ -1,0 +1,112 @@
+<resources>
+    <string name="app_name">दिंडोरी प्रणित याज्ञिकी</string>
+    <string name="shri_swami_samarth">|| श्री स्वामी समर्थ ||</string>
+
+    <string name="login_welcome">स्वागत आहे</string>
+    <string name="login_subtitle">लॉगिन करून पुढे सुरू ठेवा</string>
+    <string name="email_address">ईमेल पत्ता</string>
+    <string name="password">पासवर्ड</string>
+    <string name="forgot_password">पासवर्ड विसरलात?</string>
+    <string name="login_button">लॉगिन करा</string>
+    <string name="new_here_question">नवीन आहात? </string>
+    <string name="new_here_create_account">नवीन आहात? खाते तयार करा</string>
+    <string name="create_account">खाते तयार करा</string>
+    <string name="guruji_login_click">गुरुजी लॉगिनसाठी येथे क्लिक करा</string>
+
+    <string name="user_reg_title">यजमान नोंदणी</string>
+    <string name="user_reg_subtitle">श्री स्वामी समर्थ - पूजा सेवा नोंदणी</string>
+    <string name="personal_info_section">वैयक्तिक माहिती</string>
+    <string name="full_name">पूर्ण नाव</string>
+    <string name="mobile_number">मोबाईल नंबर</string>
+    <string name="email_id_optional">ईमेल आयडी (पर्यायी)</string>
+    <string name="select_district">जिल्हा निवडा</string>
+    <string name="pincode">पिनकोड</string>
+    <string name="full_address">पूर्ण पत्ता</string>
+    <string name="create_password">पासवर्ड तयार करा</string>
+    <string name="register_now">नोंदणी करा</string>
+    <string name="already_have_account_question">आधीच खाते आहे? </string>
+    <string name="already_have_account">आधीच खाते आहे? लॉगिन करा</string>
+
+    <string name="guruji_login_title">गुरुजी लॉगिन</string>
+    <string name="guruji_login_subtitle">याज्ञिकी खात्यात प्रवेश करा</string>
+    <string name="email_or_mobile">ईमेल किंवा मोबाईल</string>
+    <string name="new_guruji_question">नवीन गुरुजी? </string>
+    <string name="new_guruji_register">नवीन गुरुजी आहात? नोंदणी करा</string>
+    <string name="register_now_guruji">गुरुजी म्हणून नोंदणी करा</string>
+
+    <string name="guruji_reg_title">गुरुजी नोंदणी</string>
+    <string name="guruji_reg_subtitle">श्री स्वामी समर्थ - याज्ञिकी सेवा नोंदणी</string>
+    <string name="section_1_personal">वैयक्तिक माहिती</string>
+    <string name="section_2_work">कामाची माहिती</string>
+    <string name="section_3_docs">कागदपत्रे</string>
+    <string name="section_4_bank">बँक माहिती</string>
+    <string name="experience_years">अनुभव (वर्षे)</string>
+    <string name="select_pooja">पूजा निवडा</string>
+    <string name="aadhaar_card">आधार कार्ड</string>
+    <string name="pan_card">पॅन कार्ड</string>
+    <string name="affidavit">प्रतिज्ञापत्र</string>
+    <string name="photo">फोटो</string>
+    <string name="upload">अपलोड</string>
+    <string name="uploaded">अपलोड झाले</string>
+    <string name="account_holder_name">खातेधारकाचे नाव</string>
+    <string name="account_number">खाते क्रमांक</string>
+    <string name="ifsc_code">IFSC कोड</string>
+    <string name="submit_reg_app">नोंदणी अर्ज सबमिट करा</string>
+    <string name="i_accept_terms">मी अटी व शर्ती मान्य करतो</string>
+    <string name="cancel">रद्द करा</string>
+    <string name="send">पाठवा</string>
+
+    <!-- Booking Details -->
+    <string name="booking_details_title">बुकिंग तपशील</string>
+    <string name="booking_details_subtitle">पूजा बुकिंगसाठी आवश्यक माहिती भरा</string>
+    <string name="devotee_info_title">भक्त आणि ठिकाण माहिती</string>
+    <string name="district">जिल्हा</string>
+    <string name="location_locked">लोकेशन लॉक झाले आहे</string>
+    <string name="select_location_map">नकाशावर ठिकाण निवडा</string>
+    <string name="place_of_pooja">पूजेचे ठिकाण</string>
+    <string name="select_date">तारीख निवडा</string>
+    <string name="special_instructions_hint">काही विशेष सूचना असल्यास...</string>
+    <string name="confirm_booking_btn">बुकिंग कन्फर्म करा</string>
+
+    <!-- Location Types (Marathi Only) -->
+    <string name="loc_home">घर</string>
+    <string name="loc_office">कार्यालय</string>
+    <string name="loc_shop">दुकान</string>
+    <string name="loc_factory">कारखाना</string>
+    <string name="loc_hotel">हॉटेल</string>
+    <string name="loc_warehouse">गोदाम</string>
+    <string name="loc_farm">शेत</string>
+    <string name="loc_marriage_hall">मंगल कार्यालय</string>
+    <string name="loc_temple">मंदिर</string>
+    <string name="loc_ashram">मठ / आश्रम</string>
+    <string name="loc_other">इतर</string>
+
+    <!-- Error & Validation Messages -->
+    <string name="error_fill_all">कृपया सर्व माहिती भरा</string>
+    <string name="error_booking_fill_all">कृपया सर्व माहिती भरा आणि तारीख निवडा.</string>
+    <string name="error_invalid_email_mobile">वैध ईमेल किंवा मोबाईल टाका</string>
+    <string name="error_invalid_name">कृपया वैध नाव टाका (किमान ३ अक्षरे)</string>
+    <string name="error_invalid_mobile">वैध १० अंकी मोबाईल नंबर टाका</string>
+    <string name="error_invalid_email">ईमेल फॉरमॅट चुकीचा आहे</string>
+    <string name="error_select_district">कृपया जिल्हा निवडा</string>
+    <string name="error_invalid_pincode">६ अंकी पिनकोड आवश्यक आहे</string>
+    <string name="error_short_address">कृपया सविस्तर पत्ता टाका</string>
+    <string name="error_password_strength">पासवर्ड किमान ६ वर्णांचा असावा आणि त्यात अक्षर व अंक असावा</string>
+    <string name="error_password_mismatch">पासवर्ड जुळत नाहीत</string>
+    <string name="error_invalid_experience">वैध अनुभव प्रविष्ट करा (०-७० वर्षे)</string>
+    <string name="error_select_work_district">किमान एक जिल्हा निवडा</string>
+    <string name="error_select_expertise">विशेषज्ञता निवडा</string>
+    <string name="error_upload_docs">कृपया सर्व ४ कागदपत्रे अपलोड करा</string>
+    <string name="error_invalid_bank_acc">वैध बँक खाते क्रमांक टाका (९-१८ अंकी)</string>
+    <string name="error_invalid_ifsc">वैध IFSC कोड टाका (उदा. SBIN0001234)</string>
+    <string name="confirm_password">पासवर्डची पुष्टी करा</string>
+    <string name="error_accept_terms">कृपया नियम आणि अटी मान्य करा</string>
+    <string name="error_guruji_login_on_user_page">हे खाते गुरुजींचे आहे. कृपया गुरुजी लॉगिन वापरा.</string>
+    <string name="error_user_not_registered">हे खाते यजमान म्हणून नोंदणीकृत नाही.</string>
+    <string name="error_account_blocked">तुमचे खाते ब्लॉक केले आहे. कृपया ऑफिस सपोर्टशी संपर्क साधा.</string>
+    <string name="error_user_not_found">खाते सापडले नाही.</string>
+    <string name="error_wrong_password">चुकीचा पासवर्ड.</string>
+    <string name="error_login_failed">लॉगिन यशस्वी झाले नाही: %s</string>
+    <string name="password_reset_link_sent">पासवर्ड रिसेट लिंक तुमच्या ईमेलवर पाठवला आहे.</string>
+    <string name="error_password_reset_failed">त्रुटी: खाते सापडले नाही.</string>
+</resources>

@@ -1,198 +1,167 @@
 package com.example.dindoripranityadnyiki.core.navigation
 
-import android.util.Log
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavController
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
-import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import androidx.navigation.navDeepLink
-import com.example.dindoripranityadnyiki.feature.common.RoleSelectionScreen
-import com.example.dindoripranityadnyiki.feature.common.SplashScreen
-import com.example.dindoripranityadnyiki.feature.user.AlertsScreen
-import com.example.dindoripranityadnyiki.feature.user.BookingFormScreen
-import com.example.dindoripranityadnyiki.feature.user.CancelRequestScreen
-import com.example.dindoripranityadnyiki.feature.user.DashboardScreen
-import com.example.dindoripranityadnyiki.feature.user.HelpSupportScreen
-import com.example.dindoripranityadnyiki.feature.user.HistoryScreen
-import com.example.dindoripranityadnyiki.feature.user.InstantReceiptScreen
-import com.example.dindoripranityadnyiki.feature.user.LoginScreen
-import com.example.dindoripranityadnyiki.feature.user.OnboardingScreen
-import com.example.dindoripranityadnyiki.feature.user.PoojaSelectionScreen
-import com.example.dindoripranityadnyiki.feature.user.PrivacyPolicyScreen
-import com.example.dindoripranityadnyiki.feature.user.ProfileScreen
-import com.example.dindoripranityadnyiki.feature.user.RegistrationScreen
-import com.example.dindoripranityadnyiki.feature.user.SettingsScreen
-import com.example.dindoripranityadnyiki.feature.user.TermsAndConditionsScreen
-import kotlinx.coroutines.delay
+import com.example.dindoripranityadnyiki.core.data.Constants
+import com.example.dindoripranityadnyiki.feature.common.AppSplashScreen
+import com.example.dindoripranityadnyiki.feature.common.LegalInfoScreen
+import com.example.dindoripranityadnyiki.feature.common.NotificationInboxScreen
+import com.example.dindoripranityadnyiki.feature.common.SupportScreen
+import com.example.dindoripranityadnyiki.feature.common.SupportTicketsScreen
+import com.example.dindoripranityadnyiki.feature.guruji.*
+import com.example.dindoripranityadnyiki.feature.user.*
 
-// ---------------------- Routes ----------------------
 object Routes {
     const val SPLASH = "splash"
-    const val ROLE_SELECTION = "roleSelection"
-    const val ONBOARDING = "onboarding"
-    const val REGISTRATION = "registration"
     const val LOGIN = "login"
-
-    const val USER_DASHBOARD = "userDashboard"
+    const val REGISTRATION = "registration"
+    
+    const val USER_HOME = "userHome"
+    const val USER_HISTORY = "userHistory"
+    const val USER_PROFILE = "userProfile"
     const val POOJA_SELECTION = "poojaSelection"
-    const val BOOKING_FORM = "bookingForm"
+    const val BOOKING_DETAILS = "bookingDetails/{poojaId}/{poojaName}"
+    const val BOOKING_CONFIRMED = "bookingConfirmed/{bookingId}"
+    const val POOJA_PAYMENT = "poojaPayment/{bookingId}"
+    const val DIGITAL_RECEIPT = "digitalReceipt/{bookingId}"
+    
+    const val RATING_FEEDBACK = "ratingFeedback/{bookingId}/{gurujiName}"
+    
+    const val GURUJI_LOGIN = "gurujiLogin"
+    const val GURUJI_REGISTRATION = "gurujiRegistration"
+    const val GURUJI_DASHBOARD = "gurujiDashboard"
+    const val GURUJI_AVAILABILITY = "gurujiAvailability"
+    const val GURUJI_WALLET = "gurujiWallet"
+    const val GURUJI_PROFILE = "gurujiProfile"
+    const val GURUJI_BOOKING_DETAILS = "gurujiBookingDetails/{bookingId}"
+    const val SUPPORT = "support/{userRole}"
+    const val SUPPORT_TICKETS = "supportTickets/{userRole}"
+    const val NOTIFICATION_INBOX = "notificationInbox"
+    const val LEGAL_INFO = "legalInfo/{type}"
+    const val SUPPORT_CHAT = "supportChat"
 
-    const val HISTORY = "history"
-    const val MY_REQUESTS = "myRequests"
-    const val CANCEL_REQUEST = "cancelRequest"
-    const val INSTANT_RECEIPT = "instantReceipt"
-    const val ALERTS = "alerts"
-    const val PROFILE = "profile"
-    const val SETTINGS = "settings"
-    const val PRIVACY = "privacy"
-    const val TERMS = "terms"
-    const val HELP_SUPPORT = "helpSupport"
-
-    // bookingDetails/{bookingId} route (future use)
-    const val BOOKING_DETAILS = "bookingDetails/{bookingId}"
-    const val BOOKING_DETAILS_PREFIX = "bookingDetails"
+    fun ratingFeedback(bookingId: String, name: String) = "ratingFeedback/${Uri.encode(bookingId)}/${Uri.encode(name)}"
+    fun bookingDetails(id: String, name: String) = "bookingDetails/${Uri.encode(id)}/${Uri.encode(name)}"
+    fun bookingConfirmed(id: String) = "bookingConfirmed/${Uri.encode(id)}"
+    fun poojaPayment(id: String) = "poojaPayment/${Uri.encode(id)}"
+    fun digitalReceipt(id: String) = "digitalReceipt/${Uri.encode(id)}"
+    fun gurujiBookingDetails(id: String) = "gurujiBookingDetails/${Uri.encode(id)}"
+    fun support(userRole: String) = "support/${Uri.encode(userRole)}"
+    fun supportTickets(userRole: String) = "supportTickets/${Uri.encode(userRole)}"
+    fun legalInfo(type: String) = "legalInfo/${Uri.encode(type)}"
 }
 
-// ---------------------- AppNavGraph ----------------------
 @Composable
-fun AppNavGraph(
-    navController: NavHostController
-) {
-    NavHost(
-        navController = navController,
-        startDestination = Routes.SPLASH
-    ) {
-        // 🔹 Initial Flow
-        composable(Routes.SPLASH) {
-            SplashScreen(navController)
-        }
-        composable(Routes.ROLE_SELECTION) {
-            RoleSelectionScreen(navController)
-        }
-        composable(Routes.ONBOARDING) {
-            OnboardingScreen(navController)
-        }
-        composable(Routes.REGISTRATION) {
-            RegistrationScreen(navController)
-        }
-        composable(Routes.LOGIN) {
-            LoginScreen(navController)
-        }
-
-        // 🔹 User Flow / Booking
-        composable(Routes.POOJA_SELECTION) {
-            PoojaSelectionScreen(navController)
-        }
-        composable(Routes.BOOKING_FORM) {
-            BookingFormScreen(navController)
-        }
-
-        // 🏠 Dashboard (optional deep-link param openPujaUpdate)
+fun AppNavGraph(navController: NavHostController) {
+    val context = LocalContext.current
+    NavHost(navController = navController, startDestination = Routes.SPLASH) {
+        composable(Routes.SPLASH) { AppSplashScreen(navController) }
+        composable(Routes.LOGIN) { UserLoginScreen(navController) }
+        composable(Routes.REGISTRATION) { UserRegistrationScreen(navController) }
+        composable(Routes.USER_HOME) { UserHomeScreen(navController) }
+        composable(Routes.USER_HISTORY) { UserHistoryScreen(navController) }
+        composable(Routes.USER_PROFILE) { UserProfileScreen(navController) }
+        composable(Routes.NOTIFICATION_INBOX) { NotificationInboxScreen(navController) }
         composable(
-            route = "${Routes.USER_DASHBOARD}?openPujaUpdate={openPujaUpdate}",
+            route = Routes.LEGAL_INFO,
+            arguments = listOf(navArgument("type") { type = NavType.StringType })
+        ) { backStackEntry ->
+            LegalInfoScreen(navController, backStackEntry.arguments?.getString("type") ?: "privacy")
+        }
+        composable(Routes.POOJA_SELECTION) {
+            PoojaSelectionScreen(
+                onPoojaSelected = { id, name -> navController.navigate(Routes.bookingDetails(id, name)) },
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = Routes.SUPPORT,
+            arguments = listOf(navArgument("userRole") { type = NavType.StringType })
+        ) { backStackEntry ->
+            SupportScreen(navController, backStackEntry.arguments?.getString("userRole") ?: "user")
+        }
+        composable(
+            route = Routes.SUPPORT_TICKETS,
+            arguments = listOf(navArgument("userRole") { type = NavType.StringType })
+        ) { backStackEntry ->
+            SupportTicketsScreen(navController, backStackEntry.arguments?.getString("userRole") ?: "user")
+        }
+        
+        composable(
+            route = Routes.BOOKING_DETAILS,
+            arguments = listOf(navArgument("poojaId") { type = NavType.StringType }, navArgument("poojaName") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("poojaId") ?: ""
+            val name = backStackEntry.arguments?.getString("poojaName") ?: ""
+            BookingDetailsScreen(id, name, navController)
+        }
+
+        composable(
+            route = Routes.BOOKING_CONFIRMED,
+            arguments = listOf(navArgument("bookingId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("bookingId") ?: ""
+            BookingConfirmedScreen(id, navController)
+        }
+
+        composable(
+            route = Routes.POOJA_PAYMENT,
+            arguments = listOf(navArgument("bookingId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("bookingId") ?: ""
+            PoojaPaymentScreen(navController, id)
+        }
+
+        composable(
+            route = Routes.DIGITAL_RECEIPT,
+            arguments = listOf(navArgument("bookingId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("bookingId") ?: ""
+            DigitalReceiptScreen(id, navController)
+        }
+
+        composable(
+            route = Routes.RATING_FEEDBACK,
             arguments = listOf(
-                navArgument("openPujaUpdate") {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = "false"
-                }
-            ),
-            deepLinks = listOf(
-                navDeepLink {
-                    uriPattern =
-                        "app://dindori/${Routes.USER_DASHBOARD}?openPujaUpdate={openPujaUpdate}"
-                }
+                navArgument("bookingId") { type = NavType.StringType },
+                navArgument("gurujiName") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val shouldOpenUpdate =
-                backStackEntry.arguments?.getString("openPujaUpdate") == "true"
+            val bId = backStackEntry.arguments?.getString("bookingId") ?: ""
+            val gName = backStackEntry.arguments?.getString("gurujiName") ?: ""
+            RatingFeedbackScreen(navController, bId, gName)
+        }
 
-            // DashboardScreen(navController, openPujaUpdateFromDeepLink = shouldOpenUpdate)
-            DashboardScreen(
-                navController = navController,
-                openPujaUpdateFromDeepLink = shouldOpenUpdate
+        // Guruji Section
+        composable(Routes.GURUJI_LOGIN) { GurujiLoginScreen(navController) }
+        composable(Routes.GURUJI_REGISTRATION) {
+            GurujiRegistrationScreen(
+                onAffidavitDownloadClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.AFFIDAVIT_URL))
+                    context.startActivity(intent)
+                },
+                onSubmitSuccess = { navController.navigate(Routes.GURUJI_LOGIN) },
+                navController = navController
             )
         }
-
-        // ✅ Other user screens
-        composable(Routes.HISTORY) {
-            HistoryScreen(navController)
+        composable(Routes.GURUJI_DASHBOARD) { GurujiDashboardScreen(navController) }
+        composable(Routes.GURUJI_AVAILABILITY) { GurujiAvailabilityScreen(navController) }
+        composable(Routes.GURUJI_WALLET) { GurujiWalletScreen(navController) }
+        composable(Routes.GURUJI_PROFILE) { GurujiProfileScreen(navController) }
+        composable(
+            route = Routes.GURUJI_BOOKING_DETAILS,
+            arguments = listOf(navArgument("bookingId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("bookingId") ?: ""
+            GurujiBookingDetailsScreen(id, navController)
         }
-        composable(Routes.CANCEL_REQUEST) {
-            CancelRequestScreen(navController)
-        }
-        composable(Routes.INSTANT_RECEIPT) {
-            InstantReceiptScreen(navController)
-        }
-        composable(Routes.ALERTS) {
-            AlertsScreen(navController)
-        }
-        composable(Routes.PROFILE) {
-            ProfileScreen(navController)
-        }
-        composable(Routes.SETTINGS) {
-            SettingsScreen(navController)
-        }
-        composable(Routes.PRIVACY) {
-            PrivacyPolicyScreen(navController)
-        }
-        composable(Routes.TERMS) {
-            TermsAndConditionsScreen(navController)
-        }
-        composable(Routes.HELP_SUPPORT) {
-            HelpSupportScreen(navController)
-        }
-
-        // इथे पुढे Guruji routes add करायचे (userGraph + gurujiGraph विभाजित करून)
-    }
-}
-
-// ---------------------- Helper extensions ----------------------
-fun NavHostController.safeNavigate(
-    route: String,
-    builder: (NavOptionsBuilder.() -> Unit)? = null
-) {
-    try {
-        val currentRoute = this.currentBackStackEntry?.destination?.route
-        if (currentRoute == route) return
-        if (builder != null) {
-            this.navigate(route, builder)
-        } else {
-            this.navigate(route)
-        }
-    } catch (e: Exception) {
-        Log.e("NavSafe", "safeNavigate failed for route=$route", e)
-    }
-}
-
-fun NavHostController.navigateAndPopToStart(route: String) {
-    try {
-        this.navigate(route) {
-            popUpTo(this@navigateAndPopToStart.graph.startDestinationId) {
-                inclusive = true
-            }
-            launchSingleTop = true
-        }
-    } catch (e: Exception) {
-        Log.e("NavSafe", "navigateAndPopToStart failed for $route", e)
-    }
-}
-
-suspend fun closeDrawerThenNavigate(
-    drawerClose: suspend () -> Unit,
-    navController: NavController,
-    route: String,
-    delayMs: Long = 120
-) {
-    try {
-        drawerClose()
-        delay(delayMs)
-        (navController as? NavHostController)?.safeNavigate(route)
-    } catch (e: Exception) {
-        Log.e("NavSafe", "closeDrawerThenNavigate failed for $route", e)
+        composable(Routes.SUPPORT_CHAT) { LiveSupportChatScreen(navController) }
     }
 }

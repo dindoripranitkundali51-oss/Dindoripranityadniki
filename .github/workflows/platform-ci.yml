@@ -1,0 +1,105 @@
+name: Platform CI
+
+on:
+  push:
+    paths:
+      - "app/**"
+      - "functions/**"
+      - "web-admin-panel/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle.properties"
+      - "gradle/**"
+      - ".github/workflows/platform-ci.yml"
+  pull_request:
+    paths:
+      - "app/**"
+      - "functions/**"
+      - "web-admin-panel/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle.properties"
+      - "gradle/**"
+      - ".github/workflows/platform-ci.yml"
+
+jobs:
+  verify-functions:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: functions
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install functions dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Functions syntax check
+        run: node --check index.js
+
+      - name: Functions Jest
+        run: npm run test:ci
+
+  verify-web-admin:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web-admin-panel
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web-admin-panel/package-lock.json
+
+      - name: Install web admin dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build web admin
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY: demo-key
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: demo.firebaseapp.com
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: demo-dindori-pranit-yadnyiki
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: demo.firebasestorage.app
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "1234567890"
+          NEXT_PUBLIC_FIREBASE_APP_ID: "1:1234567890:web:demo"
+          NEXT_PUBLIC_RECAPTCHA_SITE_KEY: demo-recaptcha
+        run: npm run build
+
+  verify-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Create local.properties
+        run: |
+          printf "sdk.dir=%s\nRAZORPAY_KEY=ci_dummy_key\nMAPS_KEY=ci_dummy_maps_key\n" "$ANDROID_SDK_ROOT" > local.properties
+
+      - name: Android unit tests
+        run: ./gradlew :app:testDebugUnitTest --no-daemon --stacktrace
+
+      - name: Android debug compile
+        run: ./gradlew :app:compileDebugKotlin --no-daemon --stacktrace

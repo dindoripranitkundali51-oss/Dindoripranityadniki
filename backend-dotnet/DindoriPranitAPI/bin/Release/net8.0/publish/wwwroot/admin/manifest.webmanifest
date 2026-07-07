@@ -1,0 +1,21 @@
+{
+  "name": "Dindori Pranit Admin",
+  "short_name": "DP Admin",
+  "description": "Installable admin operations console for Dindori Pranit Yadnyiki.",
+  "start_url": "/login",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8fafc",
+  "theme_color": "#7c3aed",
+  "icons": [
+    {
+      "src": "/admin-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "lang": "en-IN"
+}

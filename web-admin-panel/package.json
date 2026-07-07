@@ -1,0 +1,66 @@
+{
+  "name": "dindori-pranit-web-admin",
+  "version": "1.0.0",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "node --test tests/**/*.test.mjs",
+    "desktop:start": "electron .",
+    "desktop:pack": "electron-builder --dir",
+    "desktop:dist": "electron-builder --win portable nsis",
+    "packager:win": "electron-packager . \"Dindori Pranit Admin\" --platform=win32 --arch=x64 --out=release --overwrite --prune=true --extra-resource=out --icon=icon.ico"
+  },
+  "build": {
+    "appId": "com.dindori.pranit.admin.desktop",
+    "productName": "Dindori Pranit Admin",
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "executableName": "Dindori Pranit Admin",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "out",
+        "to": "web-admin-out"
+      }
+    ],
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ]
+    }
+  },
+  "dependencies": {
+    "clsx": "^2.1.0",
+    "lucide-react": "^0.312.0",
+    "next": "14.2.35",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "recharts": "^2.10.3",
+    "tailwind-merge": "^2.2.0"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.0.1",
+    "@types/node": "^20.11.5",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "autoprefixer": "^10.4.17",
+    "electron": "^37.1.0",
+    "electron-builder": "^26.0.12",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "14.2.35",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3"
+  }
+}

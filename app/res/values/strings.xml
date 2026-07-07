@@ -1,0 +1,101 @@
+<resources>
+    <string name="app_name">Dindori Pranit Yadnyiki</string>
+    <string name="shri_swami_samarth">|| Shri Swami Samarth ||</string>
+
+    <string name="login_welcome">Welcome</string>
+    <string name="login_subtitle">Login to continue</string>
+    <string name="email_address">Email Address</string>
+    <string name="password">Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="login_button">Login</string>
+    <string name="new_here_question">New here? </string>
+    <string name="create_account">Create Account</string>
+    <string name="guruji_login_click">Click here for Guruji Login</string>
+
+    <string name="user_reg_title">User Registration</string>
+    <string name="user_reg_subtitle">Pooja Service Registration</string>
+    <string name="personal_info_section">Personal Information</string>
+    <string name="full_name">Full Name</string>
+    <string name="mobile_number">Mobile Number</string>
+    <string name="email_id_optional">Email ID (Optional)</string>
+    <string name="select_district">Select District</string>
+    <string name="pincode">Pincode</string>
+    <string name="full_address">Full Address</string>
+    <string name="create_password">Create Password</string>
+    <string name="register_now">Register Now</string>
+    <string name="already_have_account">Already have an account? Login</string>
+
+    <string name="guruji_login_title">Guruji Login</string>
+    <string name="guruji_login_subtitle">Access Yadnyiki Account</string>
+    <string name="email_or_mobile">Email or Mobile</string>
+    <string name="register_now_guruji">Register as Guruji</string>
+
+    <string name="guruji_reg_title">Guruji Registration</string>
+    <string name="guruji_reg_subtitle">Yadnyiki Service Registration</string>
+    <string name="section_1_personal">Personal Details</string>
+    <string name="section_2_work">Work Details</string>
+    <string name="section_3_docs">Documents</string>
+    <string name="section_4_bank">Bank Details</string>
+    <string name="experience_years">Experience (Years)</string>
+    <string name="select_pooja">Select Pooja</string>
+    <string name="aadhaar_card">Aadhaar Card</string>
+    <string name="pan_card">PAN Card</string>
+    <string name="affidavit">Affidavit</string>
+    <string name="photo">Photo</string>
+    <string name="upload">Upload</string>
+    <string name="uploaded">Uploaded</string>
+    <string name="account_holder_name">Account Holder Name</string>
+    <string name="account_number">Account Number</string>
+    <string name="ifsc_code">IFSC Code</string>
+    <string name="submit_reg_app">Submit Registration</string>
+    <string name="i_accept_terms">I accept Terms and Conditions</string>
+    <string name="cancel">Cancel</string>
+    <string name="send">Send</string>
+
+    <!-- Booking Details -->
+    <string name="booking_details_title">Booking Details</string>
+    <string name="booking_details_subtitle">Fill puja booking details</string>
+    <string name="devotee_info_title">Devotee &amp; Location Info</string>
+    <string name="district">District</string>
+    <string name="location_locked">Location Locked</string>
+    <string name="select_location_map">Select location on map</string>
+    <string name="place_of_pooja">Place of Pooja</string>
+    <string name="select_date">Select Date</string>
+    <string name="special_instructions_hint">Any special instructions...</string>
+    <string name="confirm_booking_btn">Confirm Booking</string>
+
+    <!-- Location Types (English Only) -->
+    <string name="loc_home">Home / Residence</string>
+    <string name="loc_office">Office / Corporate Workspace</string>
+    <string name="loc_shop">Shop / Showroom / Commercial Outlet</string>
+    <string name="loc_factory">Factory / Plant / Workshop</string>
+    <string name="loc_hotel">Hotel / Restaurant / Cafe</string>
+    <string name="loc_warehouse">Warehouse / Godown / Storage</string>
+    <string name="loc_farm">Farm / Agricultural Land</string>
+    <string name="loc_marriage_hall">Marriage Hall / Banquet Hall / Lawn</string>
+    <string name="loc_temple">Temple / Sacred Shrine</string>
+    <string name="loc_ashram">Monastery / Ashram / Spiritual Center</string>
+    <string name="loc_other">Other</string>
+
+    <!-- Error & Validation Messages -->
+    <string name="error_fill_all">Please fill all fields</string>
+    <string name="error_booking_fill_all">Please fill all details and select date.</string>
+    <string name="error_invalid_email_mobile">Enter valid email or mobile</string>
+    <string name="error_invalid_name">Valid name required (min 3 chars)</string>
+    <string name="error_invalid_mobile">Valid 10-digit mobile required</string>
+    <string name="error_invalid_email">Invalid email format</string>
+    <string name="error_select_district">Please select a district</string>
+    <string name="error_invalid_pincode">Valid 6-digit pincode required</string>
+    <string name="error_short_address">Please enter a detailed address</string>
+    <string name="error_password_strength">Password must be at least 6 characters with a letter and number</string>
+    <string name="error_password_mismatch">Passwords do not match</string>
+    <string name="error_invalid_experience">Enter valid experience (0-70 years)</string>
+    <string name="error_select_work_district">Select at least one work district</string>
+    <string name="error_select_expertise">Select at least one expertise</string>
+    <string name="error_upload_docs">Please upload all 4 documents</string>
+    <string name="error_invalid_bank_acc">Valid account required (9-18 digits)</string>
+    <string name="error_invalid_ifsc">Valid IFSC required (e.g. SBIN0001234)</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="new_guruji_question">New Guruji? </string>
+    <string name="error_accept_terms">Please accept Terms and Conditions</string>
+</resources>
