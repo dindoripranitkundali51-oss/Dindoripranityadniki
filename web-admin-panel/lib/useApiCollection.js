@@ -37,7 +37,7 @@ export function useApiCollection(initialData, collectionName) {
 
     const fetchCollection = async () => {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://dindoripranitapi.somee.com/api/v1";
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "//dindoripranitapi.somee.com/api/v1";
         const token = typeof window !== "undefined" ? localStorage.getItem("jwt_auth_token") || "" : "";
         
         const res = await fetch(`${baseUrl}/admin/${endpoint}`, {

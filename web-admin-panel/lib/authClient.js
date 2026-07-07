@@ -36,7 +36,7 @@ export const resolveAdminLoginEmail = async (identifier) => {
 
 export const signInAdmin = async (email, password) => {
   const loginEmail = await resolveAdminLoginEmail(email);
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://dindoripranitapi.somee.com/api/v1";
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "//dindoripranitapi.somee.com/api/v1";
   
   const res = await fetch(`${baseUrl}/auth/login`, {
     method: "POST",
